@@ -78,6 +78,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Include="..\SimplesNET\interface\BaseCommand.cs">
+      <Link>BaseCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\SimplesNET\interface\BaseViewModel.cs">
+      <Link>BaseViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\SimplesNET\interface\Notify.cs">
+      <Link>Notify.cs</Link>
+    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -88,6 +97,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MainWindowViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

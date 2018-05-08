@@ -13,7 +13,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Vertical" Grid.Row="1">
-            <TextBox Text="qqqqq" />
+            <TextBox Text="qqqqq" MaxWidth="200" FontSize="18" />
         </StackPanel>
         
     </Grid>

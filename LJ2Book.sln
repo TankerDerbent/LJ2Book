@@ -5,16 +5,22 @@ VisualStudioVersion = 15.0.27428.2043
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LJ2Book", "LJ2Book\LJ2Book.csproj", "{FFAB6C5A-A8B8-47F2-A08F-6C733E1A9F7F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xceed.Wpf.Toolkit", "Xceed.Wpf.Toolkit\Xceed.Wpf.Toolkit.csproj", "{72E591D6-8F83-4D8C-8F67-9C325E623234}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{FFAB6C5A-A8B8-47F2-A08F-6C733E1A9F7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FFAB6C5A-A8B8-47F2-A08F-6C733E1A9F7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FFAB6C5A-A8B8-47F2-A08F-6C733E1A9F7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FFAB6C5A-A8B8-47F2-A08F-6C733E1A9F7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFAB6C5A-A8B8-47F2-A08F-6C733E1A9F7F}.Debug|x64.ActiveCfg = Debug|x64
+		{FFAB6C5A-A8B8-47F2-A08F-6C733E1A9F7F}.Debug|x64.Build.0 = Debug|x64
+		{FFAB6C5A-A8B8-47F2-A08F-6C733E1A9F7F}.Release|x64.ActiveCfg = Release|x64
+		{FFAB6C5A-A8B8-47F2-A08F-6C733E1A9F7F}.Release|x64.Build.0 = Release|x64
+		{72E591D6-8F83-4D8C-8F67-9C325E623234}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{72E591D6-8F83-4D8C-8F67-9C325E623234}.Debug|x64.Build.0 = Debug|Any CPU
+		{72E591D6-8F83-4D8C-8F67-9C325E623234}.Release|x64.ActiveCfg = Release|Any CPU
+		{72E591D6-8F83-4D8C-8F67-9C325E623234}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

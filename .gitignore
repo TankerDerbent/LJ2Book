@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 *.dll
 *.exe
 *.exe.config
@@ -26,10 +25,9 @@ Debug/
 Release/
 .vs/
 debug.log
-=======
+
 .vs
 LJ2Book/bin/
 LJ2Book/obj/
 Xceed.Wpf.Toolkit/bin
 Xceed.Wpf.Toolkit/obj
->>>>>>> 519164060d026a167afa5833558b3587286d934a

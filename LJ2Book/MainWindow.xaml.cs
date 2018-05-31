@@ -30,5 +30,5 @@ namespace LJ2Book
             if (e.Key == Key.Escape)
                 Close();
         }
-    }
+	}
 }

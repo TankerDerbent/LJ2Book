@@ -4,18 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LJ2Book"
+        xmlns:login="clr-namespace:LJ2Book.FormLogin"
+        xmlns:browse="clr-namespace:LJ2Book.FormBrowseStorage"
         mc:Ignorable="d"
         Title="" Height="450" Width="800" KeyDown="Window_KeyDown" WindowStartupLocation="CenterScreen">
+    <Window.DataContext>
+        <local:MainWindowViewModel />
+    </Window.DataContext>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <StackPanel Orientation="Vertical" Grid.Row="1">
-            <TextBox Text="login" MaxWidth="200" FontSize="18" TextAlignment="Center" Margin="3" />
-            <TextBox Text="pass" MaxWidth="200" FontSize="18" TextAlignment="Center" Margin="3"/>
-            <Button Content="Login" MaxWidth="200" FontSize="18" HorizontalContentAlignment="Center" Margin="3" IsDefault="True" />
-        </StackPanel>        
+        <login:LoginControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding Path=DataContext.LoginControlVisibility, RelativeSource={RelativeSource AncestorType=Window}}" DataContext="{Binding LoginVM}" />
+        <browse:BrowseStorageControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding Path=DataContext.BrowseStorageControlVisibility, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=Collapsed}" DataContext="{Binding BrowseStorageVM}" />
     </Grid>
 </Window>

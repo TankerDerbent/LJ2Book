@@ -25,10 +25,9 @@ namespace LJ2Book.FormBrowseStorage
 			{
 				var qryBlogs = from u in context.Users where u.UserBlog == UserBlog.Reload || u.UserBlog == UserBlog.Store select u;
 				foreach (var u in qryBlogs)
-				{
 					blogs.Add(new Blog { Name = u.UserName, LastSyncDateTime = DateTime.MinValue, IsSynchronizing = (u.UserBlog == UserBlog.Reload), SynchronizingProgress = 0 });
-				}
-				blogs.Add(new NewBlogItem(this));
+
+				blogs.Add(new NewBlogItem());
 			}
 			Blogs = blogs;
 		}
@@ -47,18 +46,35 @@ namespace LJ2Book.FormBrowseStorage
 			{
 				return new BaseCommand(x =>
 				{
-					string s = string.Format("called for item '{0}'", (x as Blog).Name);
-					MessageBox.Show(s);
+					if (x is Blog)
+					{
+						using (var context = new SiteContext())
+						{
+							string sLowerName = (x as Blog).Name.ToLower();
+							var qryUser = from u in context.Users where u.UserName.ToLower() == sLowerName select u;
+							int n = qryUser.Count();
+							User user = qryUser.First();
+							user.UserBlog = UserBlog.Ignore;
+							context.Entry(user).State = System.Data.Entity.EntityState.Modified;
+							try
+							{
+								context.SaveChanges();
+							}
+							catch (System.Data.Entity.Infrastructure.DbUpdateException)
+							{
+							}
+
+							RefreshBlogs();
+						}
+					}
 				});
 			}
 		}
-		//BaseCommand
 		public void DoEnter(Window _window)
 		{
 			if (Blogs.Count != 1)
 				return;
 
-			//(Blogs.FirstOrDefault() as NewBlogItem).
 			NewBlogCommand.Execute(_window);
 		}
 		public ICommand NewBlogCommand
@@ -87,7 +103,7 @@ namespace LJ2Book.FormBrowseStorage
 							else
 							{
 								sNewBlogger = addForm.ctrlCombo.SelectedItem.ToString();
-								var qryUser = from u in context.Users where u.UserName == sNewBlogger select u;
+								var qryUser = from u in context.Users where u.UserName.ToLower() == sNewBlogger.ToLower() select u;
 								User user = qryUser.First();
 								user.UserBlog = UserBlog.Reload;
 								context.Entry(user).State = System.Data.Entity.EntityState.Modified;
@@ -122,13 +138,11 @@ namespace LJ2Book.FormBrowseStorage
 
 		public override void Dispose()
 		{
-			//throw new System.NotImplementedException();
 		}
 
 		internal void RefreshBlogs()
 		{
 			ReloadBlogList();
-			//throw new NotImplementedException();
 			OnPropertyChanged(() => Blogs);
 		}
 	}
@@ -143,11 +157,8 @@ namespace LJ2Book.FormBrowseStorage
 	}
 	class NewBlogItem
 	{
-		private BrowseStorageViewModel vm;
-		public NewBlogItem(BrowseStorageViewModel _vm)
+		public NewBlogItem()
 		{
-			this.vm = _vm;
 		}
-		//public string Name { get; set; }
 	}
 }

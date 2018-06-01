@@ -1,8 +1,8 @@
-﻿using System.Windows;
+﻿using System;
+using System.Linq;
+using System.Windows;
 using SimplesNet;
 using LJ2Book.DataBase;
-using System.Linq;
-using System;
 
 namespace LJ2Book
 {
@@ -75,8 +75,6 @@ namespace LJ2Book
 			{
 				Param.SetParam(DO_REMEMBER_USER, RememberLoginAndPass, context);
 
-				string sPass = LoginVM.UnsecurePassword;
-
 				if (RememberLoginAndPass)
 				{
 					int UserID = -1;
@@ -98,7 +96,7 @@ namespace LJ2Book
 					}
 					else// if userQry.Count() == 0
 					{
-						User user = new User { UserName = LoginVM.Login, Password = LoginVM.SecurePassword, Type = 1 };
+						User user = new User { UserName = LoginVM.Login, Password = LoginVM.SecurePassword, UserType = UserType.LjUser, UserBlog = UserBlog.Ignore };
 						context.Users.Add(user);
 						context.SaveChanges();
 						UserID = user.UserID;

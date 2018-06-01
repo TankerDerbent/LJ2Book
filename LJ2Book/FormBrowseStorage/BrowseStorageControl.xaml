@@ -6,7 +6,39 @@
              xmlns:local="clr-namespace:LJ2Book.FormBrowseStorage"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <!--xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"-->
     <Grid>
-            
+        <ListBox ItemsSource="{Binding Blogs}">
+            <ListBox.Resources>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <ContentPresenter HorizontalAlignment="Stretch" Margin="2,5,2,0" />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+                <DataTemplate DataType="{x:Type local:Blog}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="18"/>
+                        <Button Grid.Column="3" Style="{StaticResource DeleteButtonGraphic24TemplateStyle}" Command="{Binding Path=DataContext.RemoveItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                    </Grid>
+                    
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:NewBlogItem}">
+                    <Grid>
+                        <!--<Button HorizontalAlignment="Left" Content="New Item" Command="{Binding NewBlogCommand}" CommandParameter="{Binding Path=.,RelativeSource={RelativeSource AncestorType=Window}}" Height="30" Width="80" />-->
+                        <Button HorizontalAlignment="Left" Content="New Item" Command="{Binding Path=DataContext.NewBlogCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path=.,RelativeSource={RelativeSource AncestorType=Window}}" Height="30" Width="80" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.Resources>
+        </ListBox>
     </Grid>
 </UserControl>

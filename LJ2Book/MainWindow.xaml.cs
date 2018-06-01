@@ -29,6 +29,12 @@ namespace LJ2Book
         {
             if (e.Key == Key.Escape)
                 Close();
-        }
+
+			if (e.Key == Key.Enter)
+				if (this.DataContext is MainWindowViewModel)
+					if ((this.DataContext as MainWindowViewModel).Mode == MainWindowViewModel.EMode.BrowseStorage)
+						(ctrlBrowseStorage.DataContext as FormBrowseStorage.BrowseStorageViewModel).DoEnter(this);
+
+		}
 	}
 }

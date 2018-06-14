@@ -1,40 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+﻿using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LJ2Book
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+	/// <summary>
+	/// Логика взаимодействия для MainWindow.xaml
+	/// </summary>
+	public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
         }
-
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Escape)
-                Close();
+			if (e.Key == Key.Escape)
+			{
+				if (this.DataContext is MainWindowViewModel)
+				{
+					if ((this.DataContext as MainWindowViewModel).Mode == MainWindowViewModel.EMode.Login)
+					{
+						if ((ctrlLogin.DataContext as FormLogin.LoginViewModel).WorkOffline.CanExecute(null))
+							(ctrlLogin.DataContext as FormLogin.LoginViewModel).WorkOffline.Execute(null);
+					}
+					else
+					{
+						Close();
+					}
+				}
+			}
 
 			if (e.Key == Key.Enter)
+			{
 				if (this.DataContext is MainWindowViewModel)
-					if ((this.DataContext as MainWindowViewModel).Mode == MainWindowViewModel.EMode.BrowseStorage)
-						(ctrlBrowseStorage.DataContext as FormBrowseStorage.BrowseStorageViewModel).DoEnter(this);
-
+				{
+					switch ((this.DataContext as MainWindowViewModel).Mode)
+					{
+						case MainWindowViewModel.EMode.BrowseStorage:
+							(ctrlBrowseStorage.DataContext as FormBrowseStorage.BrowseStorageViewModel).DoEnter(this);
+							break;
+						case MainWindowViewModel.EMode.Login:
+							(ctrlLogin.DataContext as FormLogin.LoginViewModel).DoEnter();
+							break;
+					}
+				}
+			}
 		}
 	}
 }

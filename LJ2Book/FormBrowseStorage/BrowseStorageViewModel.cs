@@ -1,45 +1,25 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Windows;
 using SimplesNet;
 using LJ2Book.DataBase;
 using System.Windows.Input;
+using System.Collections.ObjectModel;
 
 namespace LJ2Book.FormBrowseStorage
 {
 	class BrowseStorageViewModel : BaseViewModel
 	{
 		private LJ2Book.MainWindowViewModel RootVM;
-		private List<object> _Blogs;
 
 		public BrowseStorageViewModel(LJ2Book.MainWindowViewModel _RootVM, Window window = null) : base(window)
 		{
 			RootVM = _RootVM;
-			ReloadBlogList();
+			RootVM.db.Blogs.Load();
 		}
-		private void ReloadBlogList()
-		{
-			List<object> blogs = new List<object>();
-			using (var context = new SiteContext("DefaultConnection"))
-			{
-				var qryBlogs = from u in context.Users where u.UserBlog == UserBlog.Reload || u.UserBlog == UserBlog.Store select u;
-				foreach (var u in qryBlogs)
-					blogs.Add(new Blog { Name = u.UserName, LastSyncDateTime = DateTime.MinValue, IsSynchronizing = (u.UserBlog == UserBlog.Reload), SynchronizingProgress = 0 });
-
-				blogs.Add(new NewBlogItem());
-			}
-			Blogs = blogs;
-		}
-		public List<object> Blogs
-		{
-			get => _Blogs;
-			set
-			{
-				_Blogs = value;
-				OnPropertyChanged(() => Blogs);
-			}
-		}
+		public ObservableCollection<Blog> Blogs { get => RootVM.db.Blogs.Local; }
 		public ICommand RemoveItem
 		{
 			get
@@ -50,12 +30,7 @@ namespace LJ2Book.FormBrowseStorage
 					{
 						using (var context = new SiteContext())
 						{
-							string sLowerName = (x as Blog).Name.ToLower();
-							var qryUser = from u in context.Users where u.UserName.ToLower() == sLowerName select u;
-							int n = qryUser.Count();
-							User user = qryUser.First();
-							user.UserBlog = UserBlog.Ignore;
-							context.Entry(user).State = System.Data.Entity.EntityState.Modified;
+							RootVM.db.Blogs.Remove((x as Blog));
 							try
 							{
 								context.SaveChanges();
@@ -88,26 +63,38 @@ namespace LJ2Book.FormBrowseStorage
 
 					using (var context = new SiteContext())
 					{
-						var qryNonBloggers = from u in context.Users where u.UserBlog == UserBlog.Ignore select u.UserName;
+						var qryNonBloggers = from u in context.Users select u.UserName;
 						sNonBloggers = qryNonBloggers.ToList();
 						addForm.DataContext = sNonBloggers;
 						addForm.Owner = x as Window;
-						string sNewBlogger;
+						
 						if (addForm.ShowDialog() ?? false)
 						{
-							if (addForm.ctrlCombo.SelectedItem == null)
+							bool bStorePictures = addForm.chkStorePictures.IsChecked ?? false;
+							bool bStartImmediatly = addForm.chrStartImmediatly.IsChecked ?? false;
+
+							string sNewBlogName = addForm.ctrlCombo.SelectedItem == null ? sNewBlogName = addForm.ctrlCombo.Text : sNewBlogName = addForm.ctrlCombo.SelectedItem.ToString();
+							if (sNewBlogName != addForm.ctrlCombo.Text)
+								sNewBlogName = addForm.ctrlCombo.Text;
+
+							User user;
+							var qryUser = from u in context.Users where u.UserName.ToLower() == sNewBlogName.ToLower() && u.UserType == UserType.LjUser select u;
+							if (qryUser.Count() == 0)
 							{
-								sNewBlogger = addForm.ctrlCombo.Text;
-								context.Users.Add(new User { UserName = addForm.ctrlCombo.Text, Password = "*", UserBlog = UserBlog.Reload, UserType = UserType.LjUser });
+								context.Users.Add(new User { UserName = sNewBlogName, Password = "<empty>", UserType = UserType.LjUser });
+								context.SaveChanges();
+								qryUser = from u in context.Users where u.UserName.ToLower() == sNewBlogName.ToLower() && u.UserType == UserType.LjUser select u;
 							}
-							else
+							user = qryUser.First();
+
+							user.Blog = new Blog
 							{
-								sNewBlogger = addForm.ctrlCombo.SelectedItem.ToString();
-								var qryUser = from u in context.Users where u.UserName.ToLower() == sNewBlogger.ToLower() select u;
-								User user = qryUser.First();
-								user.UserBlog = UserBlog.Reload;
-								context.Entry(user).State = System.Data.Entity.EntityState.Modified;
-							}
+								KindOfSynchronization = bStartImmediatly ? KindOfSynchronization.Auto : KindOfSynchronization.Manual,
+								LastItemNo = -1,
+								LastSync = DateTime.MinValue,
+								StorePictures = bStorePictures
+							};
+
 							try
 							{
 								context.SaveChanges();
@@ -122,7 +109,7 @@ namespace LJ2Book.FormBrowseStorage
 										System.Data.SQLite.SQLiteException e3 = e2.InnerException as System.Data.SQLite.SQLiteException;
 										if (e3.ResultCode == System.Data.SQLite.SQLiteErrorCode.Constraint)
 										{
-											MessageBox.Show(x as Window, string.Format("Blog '{0}' alreary collected.", sNewBlogger));
+											MessageBox.Show(x as Window, string.Format("Blog '{0}' alreary collected.", sNewBlogName));
 										}
 									}
 								}
@@ -142,19 +129,11 @@ namespace LJ2Book.FormBrowseStorage
 
 		internal void RefreshBlogs()
 		{
-			ReloadBlogList();
+			RootVM.db.Blogs.Load();
 			OnPropertyChanged(() => Blogs);
 		}
 	}
 
-	class Blog
-	{
-		public string Name { get; set; }
-		public DateTime LastSyncDateTime { get; set; }
-		public bool IsSynchronizing { get; set; }
-		public int SynchronizingProgress { get; set; }
-		//public bool NewItem { get; set; }
-	}
 	class NewBlogItem
 	{
 		public NewBlogItem()

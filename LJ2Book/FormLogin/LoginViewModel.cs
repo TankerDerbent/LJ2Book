@@ -14,6 +14,7 @@ namespace LJ2Book.FormLogin
 		{
 			RootVM = _RootVM;
 			RememberLoginAndPass = false;
+			IsOffline = false;
 		}
 
 		public bool RememberLoginAndPass { get; set; }
@@ -30,9 +31,24 @@ namespace LJ2Book.FormLogin
 				OnPropertyChanged(() => IsOkEnabled);
 			}
 		}
+		public bool IsOffline { get; set; }
 		public string SecurePassword { get => _SecuredPassword; set => _SecuredPassword = value; }
 		public bool IsOkEnabled { get { return _Login.Length > 0 && _SecuredPassword.Length > 0; } }
 		public ICommand LoginCommand {  get { return new BaseCommand(() => { RootVM.Mode = MainWindowViewModel.EMode.BrowseStorage; }); } }
+		public ICommand WorkOffline { get { return new BaseCommand(() => { IsOffline = true; RootVM.Mode = MainWindowViewModel.EMode.BrowseStorage; }); } }
+		public void DoEnter()
+		{
+			if (IsOkEnabled)
+			{
+				if (LoginCommand.CanExecute(null))
+					LoginCommand.Execute(null);
+			}
+			else
+			{
+				if (WorkOffline.CanExecute(null))
+					WorkOffline.Execute(null);
+			}
+		}
 
 		public override void Dispose()
 		{

@@ -12,7 +12,7 @@
         <local:MainWindowViewModel />
     </Window.DataContext>
     <Grid>
-        <login:LoginControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding Path=DataContext.LoginControlVisibility, RelativeSource={RelativeSource AncestorType=Window}}" DataContext="{Binding LoginVM}" />
+        <login:LoginControl x:Name="ctrlLogin" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding Path=DataContext.LoginControlVisibility, RelativeSource={RelativeSource AncestorType=Window}}" DataContext="{Binding LoginVM}" />
         <browse:BrowseStorageControl x:Name="ctrlBrowseStorage" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding Path=DataContext.BrowseStorageControlVisibility, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=Collapsed}" DataContext="{Binding BrowseStorageVM}" />
     </Grid>
 </Window>

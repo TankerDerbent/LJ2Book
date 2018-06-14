@@ -19,9 +19,9 @@ namespace LJ2Book.DataBase
 			Configuration.ProxyCreationEnabled = true;
 			Configuration.LazyLoadingEnabled = true;
 		}
-
 		public DbSet<Param> Params { get; set; }
 		public DbSet<User> Users { get; set; }
+		public DbSet<Blog> Blogs { get; set; }
 		public DbSet<Article> Articles { get; set; }
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder)

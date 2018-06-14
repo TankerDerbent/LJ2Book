@@ -18,6 +18,7 @@
             <PasswordBox Name="ctrlPassword" MaxWidth="200" FontSize="18" HorizontalContentAlignment="Center" Margin="3" TabIndex="1" PasswordChanged="ctrlPassword_PasswordChanged" />
             <CheckBox MaxWidth="100" Content="Remember me" Margin="3" TabIndex="2" IsChecked="{Binding RememberLoginAndPass}" />
             <Button Content="Login" MaxWidth="200" FontSize="18" HorizontalContentAlignment="Center" Margin="3" IsDefault="True" IsEnabled="{Binding IsOkEnabled}" TabIndex="3" Command="{Binding LoginCommand}" />
+            <Button Content="Work offline" MaxWidth="200" FontSize="18" HorizontalContentAlignment="Center" Margin="3" IsDefault="True" IsEnabled="true" TabIndex="3" Command="{Binding WorkOffline}" />
         </StackPanel>
     </Grid>
 </UserControl>

@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace LJ2Book.DataBase
 {
 	public enum UserType { LjUser, NonLjUser }
-	public enum UserBlog { Ignore, Store, Reload }
+	
 	public class User
 	{
 		[Key]
@@ -17,7 +17,7 @@ namespace LJ2Book.DataBase
 		[Required]
 		public string Password { get; set; }
 		public UserType UserType { get; set; }
-		public UserBlog UserBlog { get; set; }
+		public virtual Blog Blog {get; set;}
 		public virtual ICollection<Article> Articles { get; set; }
 		public override string ToString()
 		{
@@ -25,7 +25,7 @@ namespace LJ2Book.DataBase
 			if (this.Password.Length > 0)
 				sLoginInfo = "pass hash = " + this.Password;
 
-			return string.Format("User {0} '{1}', type {2}, {3}, {4}", this.UserID.ToString("D4"), this.UserName, this.UserType.ToString(), this.UserBlog.ToString(), sLoginInfo);
+			return string.Format("User {0} '{1}', type {2}, {3}", this.UserID.ToString("D4"), this.UserName, this.UserType.ToString(), sLoginInfo);
 		}
 	}
 }

@@ -15,8 +15,10 @@ namespace LJ2Book
 		public LJ2Book.FormLogin.LoginViewModel LoginVM { get; set; }
 		public LJ2Book.FormBrowseStorage.BrowseStorageViewModel BrowseStorageVM { get; set; }
 		private bool RememberLoginAndPass { get => LoginVM.RememberLoginAndPass; }
+		public SiteContext db { get; internal set; }
 		public MainWindowViewModel()
 		{
+			db = new SiteContext();
 			LoginVM = new FormLogin.LoginViewModel(this);
 			BrowseStorageVM = new FormBrowseStorage.BrowseStorageViewModel(this);
 
@@ -96,7 +98,7 @@ namespace LJ2Book
 					}
 					else// if userQry.Count() == 0
 					{
-						User user = new User { UserName = LoginVM.Login, Password = LoginVM.SecurePassword, UserType = UserType.LjUser, UserBlog = UserBlog.Ignore };
+						User user = new User { UserName = LoginVM.Login, Password = LoginVM.SecurePassword, UserType = UserType.LjUser };
 						context.Users.Add(user);
 						context.SaveChanges();
 						UserID = user.UserID;

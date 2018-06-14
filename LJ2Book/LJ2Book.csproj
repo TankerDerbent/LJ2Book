@@ -78,6 +78,7 @@
       <HintPath>..\packages\System.Data.SQLite.Linq.1.0.108.0\lib\net46\System.Data.SQLite.Linq.dll</HintPath>
     </Reference>
     <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -97,9 +98,15 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="DataBase\Article.cs" />
+    <Compile Include="DataBase\Blog.cs" />
     <Compile Include="DataBase\Params.cs" />
     <Compile Include="DataBase\SiteContext.cs" />
     <Compile Include="DataBase\User.cs" />
+    <Compile Include="Download\DownloadManager.cs" />
+    <Compile Include="FormBrowseBlog\BrowseBlogControl.xaml.cs">
+      <DependentUpon>BrowseBlogControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="FormBrowseBlog\BrowseBlogViewModel.cs" />
     <Compile Include="FormBrowseStorage\BrowseStorageControl.xaml.cs">
       <DependentUpon>BrowseStorageControl.xaml</DependentUpon>
     </Compile>
@@ -108,9 +115,16 @@
       <DependentUpon>LoginControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="FormLogin\LoginViewModel.cs" />
+    <Compile Include="LiveJournalAPI\Loggers.cs" />
+    <Compile Include="LiveJournalAPI\ResponceProcessor.cs" />
+    <Compile Include="LiveJournalAPI\Server.cs" />
     <Compile Include="SimpleForms\AddBlog.xaml.cs">
       <DependentUpon>AddBlog.xaml</DependentUpon>
     </Compile>
+    <Page Include="FormBrowseBlog\BrowseBlogControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="FormBrowseStorage\BrowseStorageControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

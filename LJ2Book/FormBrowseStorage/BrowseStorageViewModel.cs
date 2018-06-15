@@ -28,26 +28,16 @@ namespace LJ2Book.FormBrowseStorage
 				{
 					if (x is Blog)
 					{
-						using (var context = new SiteContext())
-						{
-							RootVM.db.Blogs.Remove((x as Blog));
-							try
-							{
-								context.SaveChanges();
-							}
-							catch (System.Data.Entity.Infrastructure.DbUpdateException)
-							{
-							}
-
-							RefreshBlogs();
-						}
+						Blog blog = x as Blog;
+						RootVM.db.Blogs.Remove(blog);
+						RootVM.db.SaveChanges();
 					}
 				});
 			}
 		}
 		public void DoEnter(Window _window)
 		{
-			if (Blogs.Count != 1)
+			if (Blogs.Count >= 1)
 				return;
 
 			NewBlogCommand.Execute(_window);
@@ -61,7 +51,7 @@ namespace LJ2Book.FormBrowseStorage
 					List<string> sNonBloggers = new List<string>();
 					LJ2Book.SimpleForms.AddBlog addForm = new SimpleForms.AddBlog();
 
-					using (var context = new SiteContext())
+					var context = RootVM.db;
 					{
 						var qryNonBloggers = from u in context.Users select u.UserName;
 						sNonBloggers = qryNonBloggers.ToList();
@@ -129,7 +119,7 @@ namespace LJ2Book.FormBrowseStorage
 
 		internal void RefreshBlogs()
 		{
-			RootVM.db.Blogs.Load();
+			//RootVM.db.Blogs.Load();
 			OnPropertyChanged(() => Blogs);
 		}
 	}

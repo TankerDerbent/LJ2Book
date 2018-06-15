@@ -14,6 +14,7 @@ namespace LJ2Book
 		private EMode _Mode = EMode.Login;
 		public LJ2Book.FormLogin.LoginViewModel LoginVM { get; set; }
 		public LJ2Book.FormBrowseStorage.BrowseStorageViewModel BrowseStorageVM { get; set; }
+		public LJ2Book.FormBrowseBlog.BrowseBlogViewModel BrowseBlogVM { get; set; }
 		private bool RememberLoginAndPass { get => LoginVM.RememberLoginAndPass; }
 		public SiteContext db { get; internal set; }
 		public MainWindowViewModel()
@@ -21,8 +22,9 @@ namespace LJ2Book
 			db = new SiteContext();
 			LoginVM = new FormLogin.LoginViewModel(this);
 			BrowseStorageVM = new FormBrowseStorage.BrowseStorageViewModel(this);
+			BrowseBlogVM = new FormBrowseBlog.BrowseBlogViewModel(this);
 
-			using (var context = new SiteContext("DefaultConnection"))
+			var context = db;
 			{
 				if (context.Params.Count() > 0)
 				{
@@ -73,7 +75,7 @@ namespace LJ2Book
 
 		private void ProcessLoginForm()
 		{
-			using (var context = new SiteContext("DefaultConnection"))
+			var context = db;
 			{
 				Param.SetParam(DO_REMEMBER_USER, RememberLoginAndPass, context);
 

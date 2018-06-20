@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LJ2Book.DataBase;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -13,5 +14,16 @@ namespace LJ2Book
     /// </summary>
     public partial class App : Application
     {
-    }
+		public static SiteContext db { get; internal set; }
+		public static object dbLock { get; set; }
+
+		private void Application_Startup(object sender, StartupEventArgs e)
+		{
+			db = new SiteContext();
+			dbLock = new object();
+
+			MainWindow window = new MainWindow();
+			window.Show();
+		}
+	}
 }

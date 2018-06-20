@@ -28,10 +28,16 @@ namespace LJ2Book.LiveJournalAPI
 		{
 			this.Status = ConnectionStatus.Offline;
 		}
-		public Connection(string _user, string _pass)
+		public Connection(string _user, string _pass, bool _Encrypted = true)
 		{
 			this.User = _user;
-			this.Pass = _pass;
+			if (_Encrypted)
+				this._protectedPassword = _pass;
+			else
+			{
+				throw new Exception("Unencrypted password usage!");
+				//this.Pass = _pass;
+			}
 			Connect();
 		}
 		public void Connect()
@@ -95,7 +101,7 @@ namespace LJ2Book.LiveJournalAPI
 			if (!CheckConnection())
 				throw new FailedToRestoreConnectionException(_user);
 
-			string qryGeteventsLastn = string.Format("mode=getevents&auth_method=cookie&selecttype=lastn&howmany=1&user={0}&usejournal={1}", _user, _Target);
+			string qryGeteventsLastn = string.Format("mode=getevents&auth_method=cookie&selecttype=one&itemid={2}&user={0}&usejournal={1}", _user, _Target, _EventNo);
 			_server.DoCustomQuery(qryGeteventsLastn);
 
 			ResponceProcessor rp = new ResponceProcessor(_server.LastResponse);
@@ -120,7 +126,24 @@ namespace LJ2Book.LiveJournalAPI
 				//
 			}
 		}
+		public string LoadPrivatePage(string _Url)
+		{
+			if (!CheckConnection())
+				throw new FailedToRestoreConnectionException(_user);
 
+			//return _server.GetPrivatePage(_Url, _user, SimplesNet.Protector.Unprotect(_protectedPassword));
+			//if (!_Url.Contains(User + ".livejournal.com"))
+			//	throw new FailedToGetPrivatePageException(User, _Url);
+			return _server.LoadPrivatePage(_Url);
+		}
+		//public class FailedToGetPrivatePageException : Exception
+		//{
+		//	public FailedToGetPrivatePageException(string _User, string _Url)
+		//		: base(string.Format("Failed to get private page. Logged in as '{0}', but requesting url {1}", _User, _Url))
+		//	{
+		//		//
+		//	}
+		//}
 	}
 
 	public abstract class LJServer
@@ -384,6 +407,26 @@ namespace LJ2Book.LiveJournalAPI
 			string auth_response = ComputeMD5(constr);
 
 			return auth_response;
+		}
+		public string LoadPrivatePage(string _Url)
+		{
+			logger.Log(LogWhat.Request, _Url);
+			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(_Url);
+			request.AllowAutoRedirect = true;
+			request.Credentials = CredentialCache.DefaultCredentials;
+			request.Method = "GET";
+			request.CookieContainer = new CookieContainer();
+			request.CookieContainer.Add(_cookies);
+
+			HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+			Stream responseStream = response.GetResponseStream();
+			StreamReader readStream = new StreamReader(responseStream, Encoding.UTF8);
+
+			string currResponse = readStream.ReadToEnd();
+			readStream.Close();
+			response.Close();
+
+			return currResponse;
 		}
 
 		protected string SendRequest(string textRequest)

@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using CefSharp;
 
 namespace LJ2Book
 {
@@ -11,14 +12,21 @@ namespace LJ2Book
         public MainWindow()
         {
             InitializeComponent();
-        }
+
+			if (!Cef.IsInitialized)
+			{
+				CefSettings settings = new CefSettings();
+				settings.LogSeverity = LogSeverity.Disable;
+				Cef.Initialize(settings);
+			}
+		}
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
 			if (e.Key == Key.Escape)
 			{
 				if (this.DataContext is MainWindowViewModel)
 				{
-					if ((this.DataContext as MainWindowViewModel).Mode == MainWindowViewModel.EMode.Login)
+					if ((this.DataContext as MainWindowViewModel).Mode == MainWindowViewModel.MainWindowMode.EnterLoginAndPass)
 					{
 						if ((ctrlLogin.DataContext as FormLogin.LoginViewModel).WorkOffline.CanExecute(null))
 							(ctrlLogin.DataContext as FormLogin.LoginViewModel).WorkOffline.Execute(null);
@@ -36,10 +44,10 @@ namespace LJ2Book
 				{
 					switch ((this.DataContext as MainWindowViewModel).Mode)
 					{
-						case MainWindowViewModel.EMode.BrowseStorage:
+						case MainWindowViewModel.MainWindowMode.BrowseStorage:
 							(ctrlBrowseStorage.DataContext as FormBrowseStorage.BrowseStorageViewModel).DoEnter(this);
 							break;
-						case MainWindowViewModel.EMode.Login:
+						case MainWindowViewModel.MainWindowMode.EnterLoginAndPass:
 							(ctrlLogin.DataContext as FormLogin.LoginViewModel).DoEnter();
 							break;
 					}

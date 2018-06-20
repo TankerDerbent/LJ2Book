@@ -29,7 +29,6 @@ namespace LJ2Book.SimpleForms
 		private void AddBlog_Loaded(object sender, RoutedEventArgs e)
 		{
 			ctrlCombo.Focus();
-			//throw new NotImplementedException();
 		}
 
 		private void Button_Click(object sender, RoutedEventArgs e)

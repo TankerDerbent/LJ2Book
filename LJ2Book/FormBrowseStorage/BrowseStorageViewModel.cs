@@ -13,25 +13,92 @@ namespace LJ2Book.FormBrowseStorage
 	class BrowseStorageViewModel : BaseViewModel
 	{
 		private LJ2Book.MainWindowViewModel RootVM;
-
 		public BrowseStorageViewModel(LJ2Book.MainWindowViewModel _RootVM, Window window = null) : base(window)
 		{
 			RootVM = _RootVM;
-			RootVM.db.Blogs.Load();
+			RefreshBlogsView();
+			//RootVM.ArticlesLoadProgressChanged += RootVM_ArticlesLoadProgressChanged;
+			//RootVM.dwmgr.ArticlesLoadProgressChanged += Dwmgr_ArticlesLoadProgressChanged;
 		}
-		public ObservableCollection<Blog> Blogs { get => RootVM.db.Blogs.Local; }
+		private void RefreshBlogsView()
+		{
+			App.db.Blogs.Load();
+			_Blogs = (from b in App.db.Blogs.Local select BlogWrapper.FromBlog(b)).ToList();
+			OnPropertyChanged(() => Blogs);
+		}
+
+		//private void RootVM_ArticlesLoadProgressChanged(Blog blog, int MaxItems, int CurrentItem)
+		//{
+		//	//throw new NotImplementedException();
+		//}
+
+		//public ObservableCollection<Blog> Blogs { get => RootVM.db.Blogs.Local; }
+		private List<BlogWrapper> _Blogs;
+		public List<BlogWrapper> Blogs { get => _Blogs; internal set { } }
+		//{
+		//	get
+		//	{
+		//		List<BlogWrapper> result = new List<BlogWrapper>();
+		//		return (from b in RootVM.db.Blogs.Local select BlogWrapper.FromBlog(b)).ToList();
+		//	}
+		//}
+
 		public ICommand RemoveItem
 		{
 			get
 			{
 				return new BaseCommand(x =>
 				{
-					if (x is Blog)
+					if (x is BlogWrapper)
 					{
-						Blog blog = x as Blog;
-						RootVM.db.Blogs.Remove(blog);
-						RootVM.db.SaveChanges();
+						LJ2Book.DataBase.Blog blog = (x as BlogWrapper).blog;
+						App.db.Blogs.Remove(blog);
+						App.db.SaveChanges();
+						RefreshBlogsView();
 					}
+				});
+			}
+		}
+		public ICommand UpdateItem
+		{
+			get
+			{
+				return new BaseCommand(x =>
+				{
+					if (x is BlogWrapper)
+					{
+						(x as BlogWrapper).Update();
+						//LJ2Book.DataBase.Blog blog = (x as BlogWrapper).blog;
+						//RootVM.dwmgr.Update(blog);
+					}
+				},
+				delegate ()
+				{
+					return RootVM.Online;
+				});
+			}
+		}
+		public ICommand ClearArticles
+		{
+			get
+			{
+				return new BaseCommand(x =>
+				{
+					if (x is BlogWrapper)
+					{
+						LJ2Book.DataBase.Blog blog = (x as BlogWrapper).blog;
+						var context = App.db;
+						context.Entry(blog).Collection(b => b.Articles).Load();
+						context.Articles.RemoveRange(blog.Articles);
+						blog.LastItemNo = -1;
+						blog.LastSync = DateTime.MinValue;
+						context.SaveChanges();
+						(x as BlogWrapper).Refresh();
+					}
+				},
+				delegate ()
+				{
+					return RootVM.Online;
 				});
 			}
 		}
@@ -51,7 +118,7 @@ namespace LJ2Book.FormBrowseStorage
 					List<string> sNonBloggers = new List<string>();
 					LJ2Book.SimpleForms.AddBlog addForm = new SimpleForms.AddBlog();
 
-					var context = RootVM.db;
+					var context = App.db;
 					{
 						var qryNonBloggers = from u in context.Users select u.UserName;
 						sNonBloggers = qryNonBloggers.ToList();
@@ -108,26 +175,29 @@ namespace LJ2Book.FormBrowseStorage
 							}
 						}
 					}
-					RefreshBlogs();
+					RefreshBlogsView();
+					//OnPropertyChanged(() => Blogs);
+				},
+				delegate ()
+				{
+					return RootVM.Online;
 				});
 			}
 		}
+		//public void BlogsCollectionChanged()
+		//{
+		//	OnPropertyChanged(() => Blogs);
+		//}
 
 		public override void Dispose()
 		{
 		}
-
-		internal void RefreshBlogs()
-		{
-			//RootVM.db.Blogs.Load();
-			OnPropertyChanged(() => Blogs);
-		}
 	}
 
-	class NewBlogItem
-	{
-		public NewBlogItem()
-		{
-		}
-	}
+	//class NewBlogItem
+	//{
+	//	public NewBlogItem()
+	//	{
+	//	}
+	//}
 }

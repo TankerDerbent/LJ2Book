@@ -10,21 +10,24 @@ namespace LJ2Book
 	{
 		private readonly string DO_REMEMBER_USER = "RememberUser";
 		private readonly string REMEMBERED_USER_ID = "RememberedUserID";
-		public enum EMode { Login, BrowseStorage }
-		private EMode _Mode = EMode.Login;
+		public enum MainWindowMode { EnterLoginAndPass, CheckLoginAndPass, BrowseStorage }
+		private MainWindowMode _Mode = MainWindowMode.EnterLoginAndPass;
 		public LJ2Book.FormLogin.LoginViewModel LoginVM { get; set; }
 		public LJ2Book.FormBrowseStorage.BrowseStorageViewModel BrowseStorageVM { get; set; }
 		public LJ2Book.FormBrowseBlog.BrowseBlogViewModel BrowseBlogVM { get; set; }
 		private bool RememberLoginAndPass { get => LoginVM.RememberLoginAndPass; }
-		public SiteContext db { get; internal set; }
+		//public SiteContext db { get; internal set; }
+		//public Download.DownloadManager dwmgr { get; internal set; }
+		private bool _Online = false;
+		public bool Online { get => _Online; set => _Online = value; }
 		public MainWindowViewModel()
 		{
-			db = new SiteContext();
+			//db = new SiteContext();
 			LoginVM = new FormLogin.LoginViewModel(this);
 			BrowseStorageVM = new FormBrowseStorage.BrowseStorageViewModel(this);
 			BrowseBlogVM = new FormBrowseBlog.BrowseBlogViewModel(this);
 
-			var context = db;
+			var context = App.db;
 			{
 				if (context.Params.Count() > 0)
 				{
@@ -44,21 +47,46 @@ namespace LJ2Book
 				}
 			}
 		}
+
+		public bool CheckLoginAndPass(string _Login, string _encryptedPass)
+		{
+			//Download.DownloadManager dwmgr = new Download.DownloadManager(this, _Login, _encryptedPass);
+			if (Download.DownloadManager.TryLogin(_Login, _encryptedPass))
+			{
+				this.Mode = MainWindowMode.BrowseStorage;
+				this.Online = true;
+				OnPropertyChanged(() => Mode);
+				OnPropertyChanged(() => Online);
+				//dwmgr.ArticlesLoadProgressChanged += Dwmgr_ArticlesLoadProgressChanged;
+				return true;
+			}
+			MessageBox.Show(Application.Current.MainWindow, "Invalid login or password");
+			return false;
+		}
+
+		//public event Download.DownloadManager.OnArticlesLoadProgressChanged ArticlesLoadProgressChanged;
+
+		//private void Dwmgr_ArticlesLoadProgressChanged(Blog blog, int MaxItems, int CurrentItem)
+		//{
+		//	if (ArticlesLoadProgressChanged != null)
+		//		ArticlesLoadProgressChanged(blog, MaxItems, CurrentItem);
+		//}
+
 		public Visibility LoginControlVisibility
 		{
 			get
 			{
-				return Mode == EMode.Login ? Visibility.Visible : Visibility.Collapsed;
+				return Mode == MainWindowMode.EnterLoginAndPass ? Visibility.Visible : Visibility.Collapsed;
 			}
 		}
 		public Visibility BrowseStorageControlVisibility
 		{
 			get
 			{
-				return Mode == EMode.BrowseStorage ? Visibility.Visible : Visibility.Collapsed;
+				return Mode == MainWindowMode.BrowseStorage ? Visibility.Visible : Visibility.Collapsed;
 			}
 		}
-		public EMode Mode
+		public MainWindowMode Mode
 		{
 			get
 			{
@@ -75,7 +103,7 @@ namespace LJ2Book
 
 		private void ProcessLoginForm()
 		{
-			var context = db;
+			var context = App.db;
 			{
 				Param.SetParam(DO_REMEMBER_USER, RememberLoginAndPass, context);
 
@@ -110,10 +138,13 @@ namespace LJ2Book
 				}
 			}
 		}
+		//public void BlogsCollectionChanged()
+		//{
+		//	BrowseStorageVM.BlogsCollectionChanged();
+		//}
 
 		public override void Dispose()
 		{
-			//throw new NotImplementedException();
 		}
 	}
 }

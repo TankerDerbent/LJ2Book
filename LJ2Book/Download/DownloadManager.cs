@@ -2,7 +2,6 @@
 using LJ2Book.DataBase;
 using LJ2Book.LiveJournalAPI;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Diagnostics;
@@ -70,7 +69,6 @@ namespace LJ2Book.Download
 			List<int> listItemsToSync;
 			lock (App.dbLock)
 			{
-				//var context = RootVM.db;
 				App.db.Entry(_blog).Collection(b => b.Articles).Load();
 				if (_blog.Articles == null)
 				{
@@ -120,7 +118,7 @@ namespace LJ2Book.Download
 
 			DownloadManagerTaskInfo di = _di as DownloadManagerTaskInfo;
 
-			Debug.WriteLine("Task {0}: started", di.ItemNo);
+			//Debug.WriteLine("Task {0}: started", di.ItemNo);
 
 			LiveJournalEvent ev;
 			try
@@ -128,7 +126,7 @@ namespace LJ2Book.Download
 				lock (cnnSyncObject)
 				{
 					ev = cnn.GetEventByNo(di.Target, di.ItemNo);
-					Debug.WriteLine("Task {0}: for target {1} got event {2}", di.ItemNo, di.Target, ev.url);
+					Debug.WriteLine("DWM: Task {0}: for target {1} got event {2}", di.ItemNo, di.Target, ev.url);
 				}
 			}
 			catch (FailedToGetEventByNoException e)
@@ -146,7 +144,7 @@ namespace LJ2Book.Download
 					{
 						App.db.Articles.Add(article);
 						App.db.SaveChanges();
-						Debug.WriteLine("Task {0}: article No {1} for '{2}' saved", di.ItemNo, article.AtricleNo, article.Blog.User.UserName);
+						//Debug.WriteLine("Task {0}: article No {1} for '{2}' saved", di.ItemNo, article.AtricleNo, article.Blog.User.UserName);
 						evt.Set();
 					}
 					catch (System.Data.Entity.Infrastructure.DbUpdateException e)
@@ -168,8 +166,6 @@ namespace LJ2Book.Download
 					}
 				}
 			}), null);
-			//string rawText = cnn.LoadPrivatePage(article.Url);
-			//HtmlLoader loaderStage2 = new HtmlLoader(article, di.sc, evt, this, rawText);
 			HtmlLoader loaderStage2 = new HtmlLoader(article, di.sc, evt, this);
 		}
 		public void SaveArticleDetails(Article article)
@@ -184,7 +180,7 @@ namespace LJ2Book.Download
 
 				semaphore.Release();
 
-				Debug.WriteLine("Article task {0} details saved to DB: {1}, semaphore released", article.AtricleNo, article.Url);
+				Debug.WriteLine("DWM: Task '{0}' url '{1}',  details saved to DB, semaphore released", article.AtricleNo, article.Url);
 			}
 		}
 	}
@@ -192,19 +188,16 @@ namespace LJ2Book.Download
 	class HtmlLoader
 	{
 		Article Article;
-		//string rawText;
 		CefSharp.OffScreen.ChromiumWebBrowser browser;
 		SynchronizationContext syncContext;
 		ManualResetEvent evt;
 		DownloadManager downloadManager;
-		//public HtmlLoader(Article _article, SynchronizationContext _syncContext, ManualResetEvent manualResetEvent, DownloadManager _downloadManager, string _rawText)
 		public HtmlLoader(Article _article, SynchronizationContext _syncContext, ManualResetEvent manualResetEvent, DownloadManager _downloadManager)
 		{
 			this.Article = _article;
 			syncContext = _syncContext;
 			evt = manualResetEvent;
 			downloadManager = _downloadManager;
-			//rawText = _rawText;
 			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
 			{
 				Debug.WriteLine("HtmlLoader for 919: ctor");
@@ -220,12 +213,11 @@ namespace LJ2Book.Download
 		{
 			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
 			{
-				Debug.WriteLine("HtmlLoader for 919: Browser_FrameLoadEnd got url '{0}'", e.Url);
+				//Debug.WriteLine("HtmlLoader for 919: Browser_FrameLoadEnd got url '{0}'", e.Url);
 			}
-			//"https://www.livejournal.com/login.bml?returnto=https:%2F%2Ftestdev666.livejournal.com%2F919.html"
+			//       "https://www.livejournal.com/login.bml?returnto=https:%2F%2Ftestdev666.livejournal.com%2F919.html"
 			if (e.Url.StartsWith("https://www.livejournal.com/login.bml"))
 				SavePageToDB(false);
-			//Debug.WriteLine("Browser_FrameLoadEnd: frame '{0}'", e.Url);
 			if (e.Url != Article.Url)
 				return;
 			ExtractArticleTitle();
@@ -234,7 +226,7 @@ namespace LJ2Book.Download
 		{
 			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
 			{
-				Debug.WriteLine("HtmlLoader for 919: ExtractArticleTitle start");
+				//Debug.WriteLine("HtmlLoader for 919: ExtractArticleTitle start");
 			}
 
 			var task = browser.EvaluateScriptAsync("(function() {{ var x = document.getElementsByClassName('aentry-post__title-text'); return x.length > 0 ? x[0].innerHTML : '';}} )();");
@@ -242,14 +234,14 @@ namespace LJ2Book.Download
 			{
 				if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
 				{
-					Debug.WriteLine("HtmlLoader for 919: ExtractArticleTitle task");
+					//Debug.WriteLine("HtmlLoader for 919: ExtractArticleTitle task");
 				}
 
 				if (!t.IsFaulted)
 				{
 					var response = t.Result;
 					Article.RawTitle = response.Success ? response.Result.ToString() : string.Empty;
-					Debug.WriteLine("Thread {0}: Tittle loaded: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
+					//Debug.WriteLine("Thread {0}: Tittle loaded: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
 					ExtractArticleBody();
 				}
 				else
@@ -260,7 +252,7 @@ namespace LJ2Book.Download
 		{
 			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
 			{
-				Debug.WriteLine("HtmlLoader for 919: ExtractArticleBody start");
+				//Debug.WriteLine("HtmlLoader for 919: ExtractArticleBody start");
 			}
 
 			string script = "(function() {{ var x = document.getElementsByClassName('aentry-post__text'); return x.length > 0 ? x[0].innerHTML : '';}} )();";
@@ -272,14 +264,14 @@ namespace LJ2Book.Download
 			{
 				if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
 				{
-					Debug.WriteLine("HtmlLoader for 919: ExtractArticleBody task");
+					//Debug.WriteLine("HtmlLoader for 919: ExtractArticleBody task");
 				}
 
 				if (!t.IsFaulted)
 				{
 					var response = t.Result;
 					Article.RawBody = response.Success ? response.Result.ToString() : string.Empty;
-					Debug.WriteLine("Thread {0}: Body loaded: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
+					//Debug.WriteLine("Thread {0}: Body loaded: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
 					ExtractImageList();
 				}
 				else
@@ -290,7 +282,7 @@ namespace LJ2Book.Download
 		{
 			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
 			{
-				Debug.WriteLine("HtmlLoader for 919: ExtractImageList start");
+				//Debug.WriteLine("HtmlLoader for 919: ExtractImageList start");
 			}
 
 			string script = "(function() {{ var imgs = document.getElementsByClassName('aentry-post__text')[0].getElementsByTagName('img'); var sImgs = '&'; for (var i = 0; i < imgs.length; i++) { sImgs += (imgs[i].src + '&');} return sImgs;}} )();";
@@ -302,7 +294,7 @@ namespace LJ2Book.Download
 			{
 				if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
 				{
-					Debug.WriteLine("HtmlLoader for 919: ExtractImageList task");
+					//Debug.WriteLine("HtmlLoader for 919: ExtractImageList task");
 				}
 
 				if (!t.IsFaulted)
@@ -317,12 +309,12 @@ namespace LJ2Book.Download
 								result.Add(s);
 						Images = result.ToArray();
 						string resultStr = string.Join("\r\n", EvaluateJavaScriptResult.ToString().Split('&'));
-						Debug.WriteLine(string.Format("Got images list: \r\n{0}", resultStr));
-						Debug.WriteLine("Thread {0}: Image list loaded: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
+						//Debug.WriteLine(string.Format("Got images list: \r\n{0}", resultStr));
+						//Debug.WriteLine("Thread {0}: Image list loaded: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
 					}
 					else
 					{
-						Debug.WriteLine("Thread {0}: Got EMPTY images list\r\n", Thread.CurrentThread.ManagedThreadId);
+						//Debug.WriteLine("Thread {0}: Got EMPTY images list\r\n", Thread.CurrentThread.ManagedThreadId);
 					}
 					SavePageToDB();
 				}
@@ -333,11 +325,14 @@ namespace LJ2Book.Download
 
 		private void SavePageToDB(bool Success = true)
 		{
+			browser.BrowserInitialized -= Browser_BrowserInitialized;
+			browser.FrameLoadEnd -= Browser_FrameLoadEnd;
+
 			evt.WaitOne();
 
 			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
 			{
-				Debug.WriteLine("HtmlLoader for 919: SavePageToDB start");
+				//Debug.WriteLine("HtmlLoader for 919: SavePageToDB start");
 			}
 
 
@@ -346,7 +341,7 @@ namespace LJ2Book.Download
 			{
 				if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
 				{
-					Debug.WriteLine("HtmlLoader for 919: SavePageToDB ctx.Post");
+					//Debug.WriteLine("HtmlLoader for 919: SavePageToDB ctx.Post");
 				}
 
 				Article.State = Success ? ArticleState.Ready : ArticleState.FailedToProcess;

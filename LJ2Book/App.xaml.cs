@@ -1,4 +1,5 @@
-﻿using LJ2Book.DataBase;
+﻿using CefSharp;
+using LJ2Book.DataBase;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -24,6 +25,11 @@ namespace LJ2Book
 
 			MainWindow window = new MainWindow();
 			window.Show();
+		}
+
+		private void Application_Exit(object sender, ExitEventArgs e)
+		{
+			Cef.Shutdown();
 		}
 	}
 }

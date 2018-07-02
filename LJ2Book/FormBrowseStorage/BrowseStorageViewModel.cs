@@ -17,8 +17,6 @@ namespace LJ2Book.FormBrowseStorage
 		{
 			RootVM = _RootVM;
 			RefreshBlogsView();
-			//RootVM.ArticlesLoadProgressChanged += RootVM_ArticlesLoadProgressChanged;
-			//RootVM.dwmgr.ArticlesLoadProgressChanged += Dwmgr_ArticlesLoadProgressChanged;
 		}
 		private void RefreshBlogsView()
 		{
@@ -26,23 +24,27 @@ namespace LJ2Book.FormBrowseStorage
 			_Blogs = (from b in App.db.Blogs.Local select BlogWrapper.FromBlog(b)).ToList();
 			OnPropertyChanged(() => Blogs);
 		}
-
-		//private void RootVM_ArticlesLoadProgressChanged(Blog blog, int MaxItems, int CurrentItem)
-		//{
-		//	//throw new NotImplementedException();
-		//}
-
-		//public ObservableCollection<Blog> Blogs { get => RootVM.db.Blogs.Local; }
 		private List<BlogWrapper> _Blogs;
 		public List<BlogWrapper> Blogs { get => _Blogs; internal set { } }
-		//{
-		//	get
-		//	{
-		//		List<BlogWrapper> result = new List<BlogWrapper>();
-		//		return (from b in RootVM.db.Blogs.Local select BlogWrapper.FromBlog(b)).ToList();
-		//	}
-		//}
-
+		public Blog SelectedItem { get; internal set; }
+		public ICommand ReadItem
+		{
+			get
+			{
+				return new BaseCommand(x =>
+				{
+					if (x is BlogWrapper)
+					{
+						SelectedItem = (x as BlogWrapper).blog;
+						RootVM.Mode = MainWindowViewModel.MainWindowMode.ReadBlog;
+					}
+				},
+				delegate ()
+				{
+					return RootVM.Online;
+				});
+			}
+		}
 		public ICommand RemoveItem
 		{
 			get
@@ -63,19 +65,10 @@ namespace LJ2Book.FormBrowseStorage
 		{
 			get
 			{
-				return new BaseCommand(x =>
-				{
-					if (x is BlogWrapper)
-					{
-						(x as BlogWrapper).Update();
-						//LJ2Book.DataBase.Blog blog = (x as BlogWrapper).blog;
-						//RootVM.dwmgr.Update(blog);
-					}
-				},
-				delegate ()
-				{
-					return RootVM.Online;
-				});
+				return new BaseCommand(
+					x => { if (x is BlogWrapper) (x as BlogWrapper).Update(); },
+					delegate () { return RootVM.Online; }
+				);
 			}
 		}
 		public ICommand ClearArticles
@@ -176,7 +169,6 @@ namespace LJ2Book.FormBrowseStorage
 						}
 					}
 					RefreshBlogsView();
-					//OnPropertyChanged(() => Blogs);
 				},
 				delegate ()
 				{
@@ -184,20 +176,8 @@ namespace LJ2Book.FormBrowseStorage
 				});
 			}
 		}
-		//public void BlogsCollectionChanged()
-		//{
-		//	OnPropertyChanged(() => Blogs);
-		//}
-
 		public override void Dispose()
 		{
 		}
 	}
-
-	//class NewBlogItem
-	//{
-	//	public NewBlogItem()
-	//	{
-	//	}
-	//}
 }

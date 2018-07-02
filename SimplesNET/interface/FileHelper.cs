@@ -7,12 +7,44 @@ using System.Security.AccessControl;
 using System.Diagnostics;
 using System.Security.Principal;
 using System.Runtime.InteropServices;
+using System.Linq;
 
 
 namespace SimplesNet {
 
 	public static class FileHelper
 	{
+		public static string[] GetFilesRecurcive(string directoryPath)
+		{
+			string[] files = new string[0];
+
+			if (Directory.Exists(directoryPath))
+			{
+				try
+				{
+					files = Directory.GetFiles(directoryPath);
+				}
+				catch (System.Exception) { }
+
+				string[] dirs = null;
+				try
+				{
+					dirs = Directory.GetDirectories(directoryPath);
+				}
+				catch (System.Exception) { }
+				if (dirs != null && dirs.Any())
+				{
+					foreach (var dir in dirs)
+					{
+						var newFiles = GetFilesRecurcive(dir);
+						if (newFiles != null && newFiles.Any())
+							files = files.Union(newFiles).ToArray();
+					}
+				}
+			}
+			return files;
+		}
+
 		public static bool GrantAccess(string puth, bool? IsEveryone = true, bool isFullControl = false)
 		{
 			try

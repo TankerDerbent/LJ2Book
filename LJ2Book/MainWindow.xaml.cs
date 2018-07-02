@@ -13,6 +13,8 @@ namespace LJ2Book
         {
             InitializeComponent();
 
+			this.Loaded += MainWindow_Loaded;
+
 			if (!Cef.IsInitialized)
 			{
 				CefSettings settings = new CefSettings();
@@ -20,7 +22,13 @@ namespace LJ2Book
 				Cef.Initialize(settings);
 			}
 		}
-        private void Window_KeyDown(object sender, KeyEventArgs e)
+
+		private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+		{
+			(this.DataContext as MainWindowViewModel).HeaderWin10StyleVM = new SimpleForms.ucHeaderWin10StyleVM(this);
+		}
+
+		private void Window_KeyDown(object sender, KeyEventArgs e)
         {
 			if (e.Key == Key.Escape)
 			{
@@ -53,6 +61,12 @@ namespace LJ2Book
 					}
 				}
 			}
+		}
+
+		private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			if (e.ChangedButton == MouseButton.Left)
+				this.DragMove();
 		}
 	}
 }

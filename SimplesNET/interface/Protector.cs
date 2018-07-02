@@ -27,6 +27,9 @@ namespace SimplesNet
 		}
 		public static string Unprotect(string _Secret)
 		{
+			if (_Secret.Length < 1)
+				return string.Empty;
+
 			string sResult = "";
 
 			try

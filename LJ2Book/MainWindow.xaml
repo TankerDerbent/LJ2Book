@@ -5,14 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LJ2Book"
         xmlns:login="clr-namespace:LJ2Book.FormLogin"
-        xmlns:browse="clr-namespace:LJ2Book.FormBrowseStorage"
+		xmlns:browseStorage="clr-namespace:LJ2Book.FormBrowseStorage"
+		xmlns:browseBlog="clr-namespace:LJ2Book.FormBrowseBlog"
+		xmlns:simleForms="clr-namespace:LJ2Book.SimpleForms"
         mc:Ignorable="d"
-        Title="" Height="450" Width="800" KeyDown="Window_KeyDown" WindowStartupLocation="CenterScreen">
+        Title="LiveJournal to Book" Height="450" Width="800" 
+		WindowStartupLocation="CenterScreen" KeyDown="Window_KeyDown" MouseDown="Window_MouseDown"
+		ResizeMode="CanResizeWithGrip" Background="#004359" WindowStyle="None" AllowsTransparency="True">
     <Window.DataContext>
         <local:MainWindowViewModel />
     </Window.DataContext>
-    <Grid>
-        <login:LoginControl x:Name="ctrlLogin" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding Path=DataContext.LoginControlVisibility, RelativeSource={RelativeSource AncestorType=Window}}" DataContext="{Binding LoginVM}" />
-        <browse:BrowseStorageControl x:Name="ctrlBrowseStorage" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding Path=DataContext.BrowseStorageControlVisibility, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=Collapsed}" DataContext="{Binding BrowseStorageVM}" />
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+		<simleForms:ucHeaderWin10Style x:Name="ucHeader" Grid.Row="0" DataContext="{Binding HeaderWin10StyleVM}" />
+		<login:LoginControl Grid.Row="1" x:Name="ctrlLogin" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding Path=DataContext.LoginControlVisibility, RelativeSource={RelativeSource AncestorType=Window}}" DataContext="{Binding LoginVM}" />
+		<browseStorage:BrowseStorageControl Grid.Row="1" x:Name="ctrlBrowseStorage" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding Path=DataContext.BrowseStorageControlVisibility, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=Collapsed}" DataContext="{Binding BrowseStorageVM}" />
+		<browseBlog:BrowseBlogControl Grid.Row="1" x:Name="ctrlBrowseBlog" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding  Path=DataContext.ReadBlogControlVisibility, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=Collapsed}" DataContext="{Binding BrowseBlogVM}" />
     </Grid>
 </Window>

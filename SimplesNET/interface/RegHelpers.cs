@@ -73,6 +73,69 @@ namespace SimplesNet {
 			return result;
 		}
 
+		static public bool ReadRegistryDWORD(string regSubPath, string name, ref int value, int? valueDefault = null)
+		{
+			if (string.IsNullOrEmpty(name)) return false;
+			string _reg_full_path = m_registry_root + regSubPath;
+
+			bool result = false;
+			try
+			{
+				RegistryKey key = null;
+				key = Registry.CurrentUser.OpenSubKey(_reg_full_path, RegistryKeyPermissionCheck.Default, System.Security.AccessControl.RegistryRights.SetValue | System.Security.AccessControl.RegistryRights.QueryValues);
+				if (key == null)
+				{
+					Registry.CurrentUser.CreateSubKey(_reg_full_path);
+					return false;
+				}
+				try
+				{
+					value = (int)key.GetValue(name);
+					result = true;
+				}
+				catch (Exception)
+				{
+					if (valueDefault.HasValue)
+					{
+						value = valueDefault.Value;
+						SaveRegistryDWORD(regSubPath, name, valueDefault);
+					}
+				}
+			}
+			catch (Exception)
+			{
+			}
+
+			return result;
+		}
+
+		static public bool SaveRegistryDWORD(string regSubPath, string name, int? value)
+		{
+			if (string.IsNullOrEmpty(name) || !value.HasValue) return false;
+			string _reg_full_path = m_registry_root + regSubPath;
+
+			bool result = false;
+			try
+			{
+				RegistryKey key = null;
+				key = Registry.CurrentUser.OpenSubKey(_reg_full_path, RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.SetValue);
+				if (key == null)
+				{
+					key = Registry.CurrentUser.CreateSubKey(_reg_full_path);
+				}
+				if (key != null)
+				{
+					key.SetValue(name, value.Value, RegistryValueKind.DWord);
+					result = true;
+				}
+			}
+			catch (Exception)
+			{
+			}
+
+			return result;
+		}
+
 		static public bool ReadRegistryDouble(string regSubPath, string name, ref double value)
 		{
 			if (string.IsNullOrEmpty(name)) return false;

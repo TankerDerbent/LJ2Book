@@ -10,19 +10,33 @@ namespace LJ2Book
 	{
 		private readonly string DO_REMEMBER_USER = "RememberUser";
 		private readonly string REMEMBERED_USER_ID = "RememberedUserID";
-		public enum MainWindowMode { EnterLoginAndPass, CheckLoginAndPass, BrowseStorage }
+		public enum MainWindowMode { EnterLoginAndPass, CheckLoginAndPass, BrowseStorage, ReadBlog }
 		private MainWindowMode _Mode = MainWindowMode.EnterLoginAndPass;
+		private LJ2Book.SimpleForms.ucHeaderWin10StyleVM _HeaderWin10StyleVM;
+		public LJ2Book.SimpleForms.ucHeaderWin10StyleVM HeaderWin10StyleVM
+		{
+			get { return _HeaderWin10StyleVM; }
+			set { _HeaderWin10StyleVM = value; OnPropertyChanged(() => HeaderWin10StyleVM); HeaderWin10StyleVM.BackButtonPressed += HeaderWin10StyleVM_BackButtonPressed; }
+		}
+
+		private void HeaderWin10StyleVM_BackButtonPressed()
+		{
+			switch (Mode)
+			{
+				case MainWindowMode.BrowseStorage:
+					Mode = MainWindowMode.EnterLoginAndPass;
+					break;
+			}
+		}
+
 		public LJ2Book.FormLogin.LoginViewModel LoginVM { get; set; }
 		public LJ2Book.FormBrowseStorage.BrowseStorageViewModel BrowseStorageVM { get; set; }
 		public LJ2Book.FormBrowseBlog.BrowseBlogViewModel BrowseBlogVM { get; set; }
 		private bool RememberLoginAndPass { get => LoginVM.RememberLoginAndPass; }
-		//public SiteContext db { get; internal set; }
-		//public Download.DownloadManager dwmgr { get; internal set; }
 		private bool _Online = false;
 		public bool Online { get => _Online; set => _Online = value; }
 		public MainWindowViewModel()
 		{
-			//db = new SiteContext();
 			LoginVM = new FormLogin.LoginViewModel(this);
 			BrowseStorageVM = new FormBrowseStorage.BrowseStorageViewModel(this);
 			BrowseBlogVM = new FormBrowseBlog.BrowseBlogViewModel(this);
@@ -50,28 +64,17 @@ namespace LJ2Book
 
 		public bool CheckLoginAndPass(string _Login, string _encryptedPass)
 		{
-			//Download.DownloadManager dwmgr = new Download.DownloadManager(this, _Login, _encryptedPass);
 			if (Download.DownloadManager.TryLogin(_Login, _encryptedPass))
 			{
-				this.Mode = MainWindowMode.BrowseStorage;
 				this.Online = true;
+				this.Mode = MainWindowMode.BrowseStorage;
 				OnPropertyChanged(() => Mode);
 				OnPropertyChanged(() => Online);
-				//dwmgr.ArticlesLoadProgressChanged += Dwmgr_ArticlesLoadProgressChanged;
 				return true;
 			}
 			MessageBox.Show(Application.Current.MainWindow, "Invalid login or password");
 			return false;
 		}
-
-		//public event Download.DownloadManager.OnArticlesLoadProgressChanged ArticlesLoadProgressChanged;
-
-		//private void Dwmgr_ArticlesLoadProgressChanged(Blog blog, int MaxItems, int CurrentItem)
-		//{
-		//	if (ArticlesLoadProgressChanged != null)
-		//		ArticlesLoadProgressChanged(blog, MaxItems, CurrentItem);
-		//}
-
 		public Visibility LoginControlVisibility
 		{
 			get
@@ -86,6 +89,13 @@ namespace LJ2Book
 				return Mode == MainWindowMode.BrowseStorage ? Visibility.Visible : Visibility.Collapsed;
 			}
 		}
+		public Visibility ReadBlogControlVisibility
+		{
+			get
+			{
+				return Mode == MainWindowMode.ReadBlog ? Visibility.Visible : Visibility.Collapsed;
+			}
+		}
 		public MainWindowMode Mode
 		{
 			get
@@ -94,10 +104,18 @@ namespace LJ2Book
 			}
 			set
 			{
-				ProcessLoginForm();
+				HeaderWin10StyleVM.BackButtonEnable = !(value == MainWindowMode.EnterLoginAndPass);
+
+				if (_Mode == MainWindowMode.EnterLoginAndPass && this.Online)
+					ProcessLoginForm();
+
 				_Mode = value;
 				OnPropertyChanged(() => LoginControlVisibility);
 				OnPropertyChanged(() => BrowseStorageControlVisibility);
+				OnPropertyChanged(() => ReadBlogControlVisibility);
+
+				if (_Mode == MainWindowMode.ReadBlog)
+					BrowseBlogVM.RefreshArticlesList();
 			}
 		}
 
@@ -138,11 +156,6 @@ namespace LJ2Book
 				}
 			}
 		}
-		//public void BlogsCollectionChanged()
-		//{
-		//	BrowseStorageVM.BlogsCollectionChanged();
-		//}
-
 		public override void Dispose()
 		{
 		}

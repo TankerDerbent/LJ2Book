@@ -33,7 +33,7 @@ namespace LJ2Book.FormLogin
 		public bool Online { get => RootVM.Online; }
 		public string SecurePassword { get => _SecuredPassword; set => _SecuredPassword = value; }
 		public bool IsOkEnabled { get { return _Login.Length > 0 && _SecuredPassword.Length > 0; } }
-		public ICommand LoginCommand {  get { return new BaseCommand(() => { /*RootVM.Mode = MainWindowViewModel.MainWindowMode.CheckLoginAndPass;*/ RootVM.CheckLoginAndPass(_Login, _SecuredPassword); }); } }
+		public ICommand LoginCommand {  get { return new BaseCommand(() => { RootVM.CheckLoginAndPass(_Login, _SecuredPassword); }); } }
 		public ICommand WorkOffline { get { return new BaseCommand(() => { RootVM.Mode = MainWindowViewModel.MainWindowMode.BrowseStorage; }); } }
 		public void DoEnter()
 		{

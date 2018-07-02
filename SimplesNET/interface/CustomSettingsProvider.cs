@@ -85,7 +85,25 @@ namespace SimplesNet
 			{
 				setVal = new SettingsPropertyValue(sProp);
 				setVal.IsDirty = false;
-				setVal.SerializedValue = GetSetting(sProp);
+				var val = GetSetting(sProp);
+				if(val != null)
+				{
+					setVal.SerializedValue = val;
+					try
+					{
+						setVal.PropertyValue = Convert.ChangeType(val, sProp.PropertyType);
+					}
+					catch (System.Exception)
+					{
+						setVal.PropertyValue = Convert.ChangeType(sProp.DefaultValue, sProp.PropertyType);
+					}
+				}
+				else
+				{
+					setVal.SerializedValue = sProp.DefaultValue;
+					setVal.PropertyValue = Convert.ChangeType(sProp.DefaultValue, sProp.PropertyType);
+					
+				}
 				retValues.Add(setVal);
 			}
 			return retValues;

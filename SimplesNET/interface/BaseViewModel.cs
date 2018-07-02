@@ -27,56 +27,44 @@ namespace SimplesNet
 
 		public ICommand Close
 		{
-			get { return new BaseCommand(() => CloseApplication()); }
+			get { return new BaseCommand(x => CloseWindow(x as Window)); }
 		}
 
 		public ICommand Maximize
 		{
-			get { return new BaseCommand(() => MaximizeApplication()); }
+			get { return new BaseCommand(x => MaximizeApplication(x as Window)); }
 		}
 
 		public ICommand Minimize
 		{
-			get { return new BaseCommand(() => MinimizeApplication()); }
+			get { return new BaseCommand(x => MinimizeApplication(x as Window)); }
 		}
 
-		public ICommand DragMove
+		protected virtual void CloseWindow(Window window)
 		{
-			get { return new BaseCommand(() => DragMoveCommand()); }
+			if (window == null)
+				window = Window != null ? Window : Application.Current.MainWindow;
+			window.Close();
 		}
 
-
-
-		private void DragMoveCommand()
+		private void MaximizeApplication(Window window)
 		{
-			Window.DragMove();
-		}
-
-		protected virtual void CloseApplication()
-		{
-			Application.Current.Shutdown();
-		}
-
-		private void MaximizeApplication()
-		{
-			if (Window.WindowState == WindowState.Maximized)
-				Window.WindowState = WindowState.Normal;
+			if (window == null)
+				window = Window != null ? Window : Application.Current.MainWindow;
+			if (window.WindowState == WindowState.Maximized)
+				window.WindowState = WindowState.Normal;
 			else
-				Window.WindowState = WindowState.Maximized;
+				window.WindowState = WindowState.Maximized;
 		}
 
-		private void MinimizeApplication()
+		private void MinimizeApplication(Window window)
 		{
-			if (Window.WindowState == WindowState.Minimized)
-			{
-				Window.Opacity = 1;
-				Window.WindowState = WindowState.Normal;
-			}
+			if (window == null)
+				window = Window != null ? Window : Application.Current.MainWindow;
+			if (window.WindowState == WindowState.Minimized)
+				window.WindowState = WindowState.Normal;
 			else
-			{
-				Window.Opacity = 0;
-				Window.WindowState = WindowState.Minimized;
-			}
+				window.WindowState = WindowState.Minimized;
 		}
 
 		public abstract void Dispose();

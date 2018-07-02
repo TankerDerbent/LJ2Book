@@ -31,28 +31,30 @@
 							<ColumnDefinition Width="Auto" />
 							<ColumnDefinition Width="Auto" />
 							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="Auto" />
 						</Grid.ColumnDefinitions>
 						<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Left">
 							<TextBlock Text="Blog" FontSize="10" VerticalAlignment="Center"/>
 							<TextBlock Text="{Binding BlogNameToShow}" FontSize="18" VerticalAlignment="Center"/>
 						</StackPanel>
-						<StackPanel Grid.Column="1" Orientation="Vertical" Margin="15,2,15,2">
+						<Button Grid.Column="1" Content="L" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.ReadItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+						<StackPanel Grid.Column="2" Orientation="Vertical" Margin="15,2,15,2">
 							<TextBlock Text="Update type" FontSize="10"/>
 							<TextBlock Text="{Binding KindOfSynchronizationText}" FontSize="18"/>
 						</StackPanel>
-						<StackPanel Grid.Column="2" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding BlogStatusVisibility}">
+						<StackPanel Grid.Column="3" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding BlogStatusVisibility}">
 							<TextBlock Text="Last Update:" FontSize="10"/>
 							<TextBlock Text="{Binding LastUpdateAsText}" FontSize="12"/>
 							<TextBlock Text="Last Article:" FontSize="10"/>
 							<TextBlock Text="{Binding LastItemNoText}" FontSize="12"/>
 						</StackPanel>
-						<StackPanel Grid.Column="2" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding UpdatePrograssVisibility}">
+						<StackPanel Grid.Column="3" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding UpdatePrograssVisibility}">
 							<TextBlock Text="Update Progress:" FontSize="10"/>
 							<ProgressBar Maximum="{Binding ProgressMax}" Value="{Binding ProgressValue}" MaxWidth="50" MaxHeight="15" />
 						</StackPanel>
-						<Button Grid.Column="3" Content="GO" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.UpdateItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-						<Button Grid.Column="4" Content="Del" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.ClearArticles, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-						<Button Grid.Column="5" Style="{StaticResource DeleteButtonGraphic24TemplateStyle}" Command="{Binding Path=DataContext.RemoveItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+						<Button Grid.Column="4" Content="GO" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.UpdateItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+						<Button Grid.Column="5" Content="Del" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.ClearArticles, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+						<Button Grid.Column="6" Style="{StaticResource DeleteButtonGraphic24TemplateStyle}" Command="{Binding Path=DataContext.RemoveItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
 					</Grid>
 
 				</DataTemplate>

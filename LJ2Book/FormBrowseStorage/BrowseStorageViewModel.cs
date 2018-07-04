@@ -38,11 +38,11 @@ namespace LJ2Book.FormBrowseStorage
 						SelectedItem = (x as BlogWrapper).blog;
 						RootVM.Mode = MainWindowViewModel.MainWindowMode.ReadBlog;
 					}
-				},
+				}/*,
 				delegate ()
 				{
 					return RootVM.Online;
-				});
+				}*/);
 			}
 		}
 		public ICommand RemoveItem
@@ -97,10 +97,15 @@ namespace LJ2Book.FormBrowseStorage
 		}
 		public void DoEnter(Window _window)
 		{
-			if (Blogs.Count >= 1)
-				return;
-
-			NewBlogCommand.Execute(_window);
+			switch(Blogs.Count)
+			{
+				case 0:
+					NewBlogCommand.Execute(_window);
+					break;
+				case 1:
+					this.ReadItem.Execute(Blogs.First());
+					break;
+			}
 		}
 		public ICommand NewBlogCommand
 		{
@@ -108,73 +113,76 @@ namespace LJ2Book.FormBrowseStorage
 			{
 				return new BaseCommand(x =>
 				{
-					List<string> sNonBloggers = new List<string>();
-					LJ2Book.SimpleForms.AddBlog addForm = new SimpleForms.AddBlog();
-
-					var context = App.db;
-					{
-						var qryNonBloggers = from u in context.Users select u.UserName;
-						sNonBloggers = qryNonBloggers.ToList();
-						addForm.DataContext = sNonBloggers;
-						addForm.Owner = x as Window;
-						
-						if (addForm.ShowDialog() ?? false)
-						{
-							bool bStorePictures = addForm.chkStorePictures.IsChecked ?? false;
-							bool bStartImmediatly = addForm.chrStartImmediatly.IsChecked ?? false;
-
-							string sNewBlogName = addForm.ctrlCombo.SelectedItem == null ? sNewBlogName = addForm.ctrlCombo.Text : sNewBlogName = addForm.ctrlCombo.SelectedItem.ToString();
-							if (sNewBlogName != addForm.ctrlCombo.Text)
-								sNewBlogName = addForm.ctrlCombo.Text;
-
-							User user;
-							var qryUser = from u in context.Users where u.UserName.ToLower() == sNewBlogName.ToLower() && u.UserType == UserType.LjUser select u;
-							if (qryUser.Count() == 0)
-							{
-								context.Users.Add(new User { UserName = sNewBlogName, Password = "<empty>", UserType = UserType.LjUser });
-								context.SaveChanges();
-								qryUser = from u in context.Users where u.UserName.ToLower() == sNewBlogName.ToLower() && u.UserType == UserType.LjUser select u;
-							}
-							user = qryUser.First();
-
-							user.Blog = new Blog
-							{
-								KindOfSynchronization = bStartImmediatly ? KindOfSynchronization.Auto : KindOfSynchronization.Manual,
-								LastItemNo = -1,
-								LastSync = DateTime.MinValue,
-								StorePictures = bStorePictures
-							};
-
-							try
-							{
-								context.SaveChanges();
-							}
-							catch (System.Data.Entity.Infrastructure.DbUpdateException e)
-							{
-								if (e.InnerException is System.Data.Entity.Core.UpdateException)
-								{
-									System.Data.Entity.Core.UpdateException e2 = (e.InnerException as System.Data.Entity.Core.UpdateException);
-									if (e2.InnerException is System.Data.SQLite.SQLiteException)
-									{
-										System.Data.SQLite.SQLiteException e3 = e2.InnerException as System.Data.SQLite.SQLiteException;
-										if (e3.ResultCode == System.Data.SQLite.SQLiteErrorCode.Constraint)
-										{
-											MessageBox.Show(x as Window, string.Format("Blog '{0}' alreary collected.", sNewBlogName));
-										}
-									}
-								}
-								else
-									throw e;
-							}
-						}
-					}
-					RefreshBlogsView();
+					ShowAddBlogDialog(x as Window);
 				},
 				delegate ()
 				{
 					return RootVM.Online;
 				});
 			}
+		}
+		private void ShowAddBlogDialog(Window owner)
+		{
+			LJ2Book.SimpleForms.AddBlog addForm = new SimpleForms.AddBlog { Owner = owner };
+
+			var context = App.db;
+
+			if (!(addForm.ShowDialog() ?? false))
+				return;
+
+			bool bStorePictures = addForm.chkStorePictures.IsChecked ?? false;
+			bool bStartImmediatly = addForm.chrStartImmediatly.IsChecked ?? false;
+
+			string sNewBlogName = addForm.ctrlCombo.SelectedItem == null ? sNewBlogName = addForm.ctrlCombo.Text : sNewBlogName = addForm.ctrlCombo.SelectedItem.ToString();
+			if (sNewBlogName != addForm.ctrlCombo.Text)
+				sNewBlogName = addForm.ctrlCombo.Text;
+
+			User user;
+			var qryUser = from u in context.Users where u.UserName.ToLower() == sNewBlogName.ToLower() && u.UserType == UserType.LjUser select u;
+			if (qryUser.Count() == 0)
+			{
+				context.Users.Add(new User { UserName = sNewBlogName, Password = "<empty>", UserType = UserType.LjUser });
+				context.SaveChanges();
+				qryUser = from u in context.Users where u.UserName.ToLower() == sNewBlogName.ToLower() && u.UserType == UserType.LjUser select u;
+			}
+			user = qryUser.First();
+
+			if (user.Blog != null)
+			{
+				MessageBox.Show(owner, string.Format("Blog '{0}' already collected.", sNewBlogName));
+				return;
+			}
+
+			user.Blog = new Blog
+			{
+				KindOfSynchronization = bStartImmediatly ? KindOfSynchronization.Auto : KindOfSynchronization.Manual,
+				LastItemNo = -1,
+				LastSync = DateTime.MinValue,
+				StorePictures = bStorePictures
+			};
+
+			try
+			{
+				context.SaveChanges();
+			}
+			catch (System.Data.Entity.Infrastructure.DbUpdateException e)
+			{
+				if (e.InnerException is System.Data.Entity.Core.UpdateException)
+				{
+					System.Data.Entity.Core.UpdateException e2 = (e.InnerException as System.Data.Entity.Core.UpdateException);
+					if (e2.InnerException is System.Data.SQLite.SQLiteException)
+					{
+						System.Data.SQLite.SQLiteException e3 = e2.InnerException as System.Data.SQLite.SQLiteException;
+						if (e3.ResultCode == System.Data.SQLite.SQLiteErrorCode.Constraint)
+						{
+							MessageBox.Show(owner, string.Format("Blog '{0}' already collected.", sNewBlogName));
+						}
+					}
+				}
+				else
+					throw e;
+			}
+			RefreshBlogsView();
 		}
 		public override void Dispose()
 		{

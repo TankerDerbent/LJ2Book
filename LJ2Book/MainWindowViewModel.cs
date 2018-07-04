@@ -26,6 +26,9 @@ namespace LJ2Book
 				case MainWindowMode.BrowseStorage:
 					Mode = MainWindowMode.EnterLoginAndPass;
 					break;
+				case MainWindowMode.ReadBlog:
+					Mode = MainWindowMode.BrowseStorage;
+					break;
 			}
 		}
 
@@ -61,7 +64,6 @@ namespace LJ2Book
 				}
 			}
 		}
-
 		public bool CheckLoginAndPass(string _Login, string _encryptedPass)
 		{
 			if (Download.DownloadManager.TryLogin(_Login, _encryptedPass))
@@ -115,7 +117,7 @@ namespace LJ2Book
 				OnPropertyChanged(() => ReadBlogControlVisibility);
 
 				if (_Mode == MainWindowMode.ReadBlog)
-					BrowseBlogVM.RefreshArticlesList();
+					BrowseBlogVM.RawArticlesListChanged();
 			}
 		}
 

@@ -4,31 +4,57 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LJ2Book.FormBrowseBlog"
+			 xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="200" d:DesignWidth="800">
+	<UserControl.DataContext>
+		<local:BrowseBlogViewModel />
+	</UserControl.DataContext>
+	<UserControl.Resources>
+		<Storyboard x:Key="TogglePanelOn">
+			<ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,-400,0" To="0,0,0,0" DecelerationRatio=".6" Duration="0:0:0.2" />
+		</Storyboard>
+		<Storyboard x:Key="TogglePanelOff">
+			<ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,0" To="0,0,-400,0" DecelerationRatio=".9" Duration="0:0:0.1" />
+		</Storyboard>
+	</UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <Button Content="Refresh" />
-        </StackPanel>
+		<DockPanel Grid.Row="0" LastChildFill="True">
+			<StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+				<toolkit:WatermarkTextBox Watermark="Search by text" Text="{Binding TextToSearch}" MaxWidth="200" VerticalContentAlignment="Center" TextAlignment="Left" Margin="3" MinWidth="200" />
+				<Button Content="Refresh" VerticalAlignment="Center" Margin="0,3,3,3" MinWidth="80" Command="{Binding DoSearch}" Height="24" />
+				<CheckBox Content="Hide Private Records" VerticalAlignment="Center" Margin="0,3,3,3" IsChecked="{Binding DoNotShowHiddenArticles}" />
+			</StackPanel>
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+				<TextBox IsReadOnly="True" Margin="3" Text="{Binding SelectedTags, Mode=OneWay}" MinWidth="180" Background="LightGray" VerticalContentAlignment="Center" />
+				<Button Content=">" MinWidth="15" Margin="3" Click="Button_Click" />
+			</StackPanel>
+			
+		</DockPanel>
         <ListView Grid.Row="1" ItemsSource="{Binding Articles}">
 			<ListView.ItemTemplate>
-				<DataTemplate>
+				<DataTemplate DataType="{x:Type local:ArticleWrapper}">
 					<Grid>
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="Auto" SharedSizeGroup="DateColumn" />
 							<ColumnDefinition Width="*" />
-							<ColumnDefinition Width="Auto" />
 						</Grid.ColumnDefinitions>
-						<Label Grid.Column="0" Content="L" />
-						<Label Grid.Column="1" Content="{Binding Title}" />
-						<Label Grid.Column="2" Content="{Binding DateTimeText}" />
+						<Label Grid.Column="0" Content="{Binding DateTimeText}" Margin="3" />
+						<Label Grid.Column="1" Content="{Binding Title}" Margin="3" />
 					</Grid>
 				</DataTemplate>
 			</ListView.ItemTemplate>
         </ListView>
-    </Grid>
+		<ListBox Grid.Row="1" Name="listTags" VerticalAlignment="Stretch" Width="400" HorizontalAlignment="Right" Margin="0,0,-400,0" ItemsSource="{Binding TagsList}">
+			<ListBox.ItemTemplate>
+				<DataTemplate>
+					<CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}" Margin="1" Command="{Binding Path=DataContext.TagsListChanged, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+				</DataTemplate>
+			</ListBox.ItemTemplate>
+		</ListBox>
+	</Grid>
 </UserControl>

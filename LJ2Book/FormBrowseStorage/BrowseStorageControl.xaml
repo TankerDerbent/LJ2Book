@@ -3,15 +3,66 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+			 xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:LJ2Book.FormBrowseStorage"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="150" d:DesignWidth="300">
+	<UserControl.Resources>
+		<sys:Double x:Key="AddBlogButtonWidth">80</sys:Double>
+		<sys:Double x:Key="AddBlogButtonHeight">36</sys:Double>
+		<Style x:Key="AddBlogButonStyle" TargetType="Button">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderBrush" Value="Transparent" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="Width" Value="{StaticResource AddBlogButtonWidth}" />
+			<Setter Property="Height" Value="{StaticResource AddBlogButtonHeight}" />
+			<Setter Property="MinWidth" Value="{StaticResource AddBlogButtonWidth}" />
+			<Setter Property="MinHeight" Value="{StaticResource AddBlogButtonHeight}" />
+			<Setter Property="MaxWidth" Value="{StaticResource AddBlogButtonWidth}" />
+			<Setter Property="MaxHeight" Value="{StaticResource AddBlogButtonHeight}" />
+			<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+			<Setter Property="Focusable" Value="False" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate>
+						<Canvas Opacity="0.3" Width="{StaticResource AddBlogButtonWidth}" Height="{StaticResource AddBlogButtonHeight}" Background="Transparent">
+							<Label Content="ADD BLOG" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" />
+						</Canvas>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+			<Style.Triggers>
+				<Trigger Property="IsMouseOver" Value="true">
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate>
+								<Canvas Opacity="0.7" Width="{StaticResource AddBlogButtonWidth}" Height="{StaticResource AddBlogButtonHeight}" Background="Transparent">
+									<Label Content="ADD BLOG" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" />
+								</Canvas>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger>
+				<Trigger Property="IsPressed" Value="true">
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate>
+								<Canvas Opacity="0.7" Width="{StaticResource AddBlogButtonWidth}" Height="{StaticResource AddBlogButtonHeight}" Background="White">
+									<Label Content="ADD BLOG" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Black" />
+								</Canvas>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+	</UserControl.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*" />
 			<RowDefinition Height="Auto" />
 		</Grid.RowDefinitions>
-		<ListBox Grid.Row="0" ItemsSource="{Binding Blogs}" x:Name="ListBlogs">
+		<ListBox Grid.Row="0" ItemsSource="{Binding Blogs}" x:Name="ListBlogs" Background="Transparent" BorderThickness="0">
 			<ListBox.Resources>
 				<Style TargetType="ListBoxItem">
 					<Setter Property="Template">
@@ -23,40 +74,49 @@
 					</Setter>
 				</Style>
 				<DataTemplate DataType="{x:Type local:BlogWrapper}">
-					<Grid>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="*" />
-							<ColumnDefinition Width="Auto" />
-							<ColumnDefinition Width="Auto" />
-							<ColumnDefinition Width="Auto" />
-							<ColumnDefinition Width="Auto" />
-							<ColumnDefinition Width="Auto" />
-							<ColumnDefinition Width="Auto" />
-						</Grid.ColumnDefinitions>
-						<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Left">
-							<TextBlock Text="Blog" FontSize="10" VerticalAlignment="Center"/>
-							<TextBlock Text="{Binding BlogNameToShow}" FontSize="18" VerticalAlignment="Center"/>
-						</StackPanel>
-						<Button Grid.Column="1" Content="L" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.ReadItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-						<StackPanel Grid.Column="2" Orientation="Vertical" Margin="15,2,15,2">
-							<TextBlock Text="Update type" FontSize="10"/>
-							<TextBlock Text="{Binding KindOfSynchronizationText}" FontSize="18"/>
-						</StackPanel>
-						<StackPanel Grid.Column="3" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding BlogStatusVisibility}">
-							<TextBlock Text="Last Update:" FontSize="10"/>
-							<TextBlock Text="{Binding LastUpdateAsText}" FontSize="12"/>
-							<TextBlock Text="Last Article:" FontSize="10"/>
-							<TextBlock Text="{Binding LastItemNoText}" FontSize="12"/>
-						</StackPanel>
-						<StackPanel Grid.Column="3" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding UpdatePrograssVisibility}">
-							<TextBlock Text="Update Progress:" FontSize="10"/>
-							<ProgressBar Maximum="{Binding ProgressMax}" Value="{Binding ProgressValue}" MaxWidth="50" MaxHeight="15" />
-						</StackPanel>
-						<Button Grid.Column="4" Content="GO" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.UpdateItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-						<Button Grid.Column="5" Content="Del" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.ClearArticles, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-						<Button Grid.Column="6" Style="{StaticResource DeleteButtonGraphic24TemplateStyle}" Command="{Binding Path=DataContext.RemoveItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-					</Grid>
-
+					<Border BorderThickness="1" BorderBrush="Black" Margin="4">
+						<Grid Background="#003040">
+							<Grid.Resources>
+								<Style TargetType="TextBlock">
+									<Setter Property="Foreground" Value="#ABABAB" />
+								</Style>
+							</Grid.Resources>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Left" Margin="2">
+								<TextBlock Text="Blog" FontSize="10" VerticalAlignment="Center"/>
+								<TextBlock Text="{Binding BlogNameToShow}" FontSize="18" Foreground="#B52F1F" VerticalAlignment="Center"/>
+							</StackPanel>
+							<Button Grid.Column="1" Content="L" Margin="3" Width="26" Height="26" 
+								Command="{Binding Path=DataContext.ReadItem, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+								CommandParameter="{Binding}" 
+								IsEnabled="{Binding CanRead}" />
+							<StackPanel Grid.Column="2" Orientation="Vertical" Margin="15,2,15,2">
+								<TextBlock Text="Update type" FontSize="10"/>
+								<TextBlock Text="{Binding KindOfSynchronizationText}" FontSize="18"/>
+							</StackPanel>
+							<StackPanel Grid.Column="3" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding BlogStatusVisibility}">
+								<TextBlock Text="Last Update:" FontSize="10"/>
+								<TextBlock Text="{Binding LastUpdateAsText}" FontSize="12"/>
+								<TextBlock Text="Last Article:" FontSize="10"/>
+								<TextBlock Text="{Binding LastItemNoText}" FontSize="12"/>
+							</StackPanel>
+							<StackPanel Grid.Column="3" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding UpdateProgressVisibility}">
+								<TextBlock Text="Update Progress:" FontSize="10"/>
+								<ProgressBar Maximum="{Binding ProgressMax}" Value="{Binding ProgressValue}" MaxWidth="50" MaxHeight="15" />
+							</StackPanel>
+							<Button Grid.Column="4" Content="GO" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.UpdateItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+							<Button Grid.Column="5" Content="Del" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.ClearArticles, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+							<Button Grid.Column="6" Style="{StaticResource DeleteButtonGraphic24TemplateStyle}" Command="{Binding Path=DataContext.RemoveItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+						</Grid>
+					</Border>
 				</DataTemplate>
 				<!--<DataTemplate DataType="{x:Type local:NewBlogItem}">
 					<Grid>
@@ -65,6 +125,9 @@
 				</DataTemplate>-->
 			</ListBox.Resources>
 		</ListBox>
-		<Button Grid.Row="1" HorizontalAlignment="Left" Content="New Item" Command="{Binding Path=DataContext.NewBlogCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path=.,RelativeSource={RelativeSource AncestorType=Window}}" Height="24" Width="60" />
+		<!--<Button Grid.Row="1" HorizontalAlignment="Left" Content="New Item" Command="{Binding Path=DataContext.NewBlogCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path=.,RelativeSource={RelativeSource AncestorType=Window}}" Height="24" Width="60" />-->
+		<Button Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="ADD BLOG" Panel.ZIndex="2" Style="{StaticResource AddBlogButonStyle}"
+				Command="{Binding NewBlogCommand}" 
+				CommandParameter="{Binding Path=.,RelativeSource={RelativeSource AncestorType=Window}}" />
 	</Grid>
 </UserControl>

@@ -111,6 +111,7 @@
     <Compile Include="DataBase\SiteContext.cs" />
     <Compile Include="DataBase\User.cs" />
     <Compile Include="Download\DownloadManager.cs" />
+    <Compile Include="FormBrowseBlog\ArticleWrapper.cs" />
     <Compile Include="FormBrowseBlog\BrowseBlogControl.xaml.cs">
       <DependentUpon>BrowseBlogControl.xaml</DependentUpon>
     </Compile>

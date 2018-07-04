@@ -23,6 +23,13 @@ namespace LJ2Book.SimpleForms
 		{
 			InitializeComponent();
 
+			var context = App.db;
+
+			List<string> sNonBloggers = new List<string>();
+			var qryNonBloggers = from u in context.Users select u.UserName;
+			sNonBloggers = qryNonBloggers.ToList();
+			this.DataContext = sNonBloggers;
+
 			this.Loaded += AddBlog_Loaded;
 		}
 

@@ -23,11 +23,12 @@ namespace LJ2Book.FormBrowseStorage
 			{
 				_IsUpdating = value;
 				OnPropertyChanged(() => BlogStatusVisibility);
-				OnPropertyChanged(() => UpdatePrograssVisibility);
+				OnPropertyChanged(() => UpdateProgressVisibility);
 			}
 		}
 		public Visibility BlogStatusVisibility { get { return IsUpdating ? Visibility.Collapsed : Visibility.Visible; } }
-		public Visibility UpdatePrograssVisibility { get { return IsUpdating ? Visibility.Visible : Visibility.Collapsed; } }
+		public Visibility UpdateProgressVisibility { get { return IsUpdating ? Visibility.Visible : Visibility.Collapsed; } }
+		public bool CanRead { get => blog.LastSync != DateTime.MinValue; }
 		public int ProgressMax { get; set; }
 		public int ProgressValue { get; set; }
 
@@ -82,7 +83,7 @@ namespace LJ2Book.FormBrowseStorage
 			OnPropertyChanged(() => LastItemNoText);
 			OnPropertyChanged(() => LastUpdateAsText);
 			OnPropertyChanged(() => BlogStatusVisibility);
-			OnPropertyChanged(() => UpdatePrograssVisibility);
+			OnPropertyChanged(() => UpdateProgressVisibility);
 		}
 	}
 }

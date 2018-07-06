@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TryShowBlocks", "TryShowBlocks.csproj", "{F65DF1D3-63BF-4AE6-96C4-FD92DA3DE53E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F65DF1D3-63BF-4AE6-96C4-FD92DA3DE53E}.Debug|x64.ActiveCfg = Debug|x64
+		{F65DF1D3-63BF-4AE6-96C4-FD92DA3DE53E}.Debug|x64.Build.0 = Debug|x64
+		{F65DF1D3-63BF-4AE6-96C4-FD92DA3DE53E}.Release|x64.ActiveCfg = Release|x64
+		{F65DF1D3-63BF-4AE6-96C4-FD92DA3DE53E}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9D598D73-E7C3-41DB-BAB9-A52C047A610D}
+	EndGlobalSection
+EndGlobal

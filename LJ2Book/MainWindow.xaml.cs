@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input;
 using CefSharp;
+using LJ2Book.SimpleForms;
 
 namespace LJ2Book
 {
@@ -45,8 +46,7 @@ namespace LJ2Book
 					}
 				}
 			}
-
-			if (e.Key == Key.Enter)
+			else if (e.Key == Key.Enter)
 			{
 				if (this.DataContext is MainWindowViewModel)
 				{
@@ -59,6 +59,15 @@ namespace LJ2Book
 							(ctrlLogin.DataContext as FormLogin.LoginViewModel).DoEnter();
 							break;
 					}
+				}
+			}
+			else if (e.Key == Key.Back)
+			{
+				if (ucHeader != null && ucHeader.DataContext is ucHeaderWin10StyleVM)
+				{
+					var dc = ucHeader.DataContext as ucHeaderWin10StyleVM;
+					if (dc.Back.CanExecute(null))
+						dc.Back.Execute(null);
 				}
 			}
 		}

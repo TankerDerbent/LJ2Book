@@ -1,0 +1,18 @@
+﻿<Window x:Class="TryCefSharp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TryCefSharp"
+        
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        KeyDown="Window_KeyDown">
+    <Grid>
+        <!-- xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf" -->
+        <!-- cefSharp:ChromiumWebBrowser Grid.Row="0" Address="https://github.com/cefsharp/CefSharp/wiki/Frequently-asked-questions" / -->
+        <!--<cefSharp:ChromiumWebBrowser Grid.Row="0" Address="http://www.ru/" />-->
+        <Button Name="btnGo" Content="GO" MaxWidth="160" MaxHeight="80" Click="Button_Click" IsEnabled="False" />
+        <Image Name="img1st" Height="100" Width="100" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+    </Grid>
+</Window>

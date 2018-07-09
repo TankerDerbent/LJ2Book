@@ -119,6 +119,7 @@ namespace LJ2Book.Download
 			semaphore.WaitOne();
 
 			DownloadManagerTaskInfo di = _di as DownloadManagerTaskInfo;
+			Debug.WriteLine("Task for item No {0}: lock semaphore", di.ItemNo);
 
 			//Debug.WriteLine("Task {0}: started", di.ItemNo);
 
@@ -133,7 +134,21 @@ namespace LJ2Book.Download
 			}
 			catch (FailedToGetEventByNoException e)
 			{
-				Debug.WriteLine(e.Message);
+				//Debug.WriteLine(e.Message);
+				Debug.WriteLine("Thread {0}: Event {1} process fail: '{2}'", Thread.CurrentThread.ManagedThreadId, di.ItemNo, e.Message);
+				//SaveArticleDetails(new Article
+				//{
+				//	ArticleNo = di.ItemNo,
+				//	Anum = -1,
+				//	State = ArticleState.FailedToProcess,
+				//	Url = string.Empty,
+				//	ArticleDT = DateTime.MinValue,
+				//	RawTitle = string.Empty,
+				//	RawBody = string.Empty,
+				//	Tags = string.Empty,
+				//	Blog = di.blog
+				//}, null);
+				Debug.WriteLine("Task for item No {0}: release semaphore (fail to get event)", di.ItemNo);
 				semaphore.Release();
 				if (ArticlesLoadProgressStep != null)
 					ArticlesLoadProgressStep();
@@ -160,7 +175,6 @@ namespace LJ2Book.Download
 					{
 						App.db.Articles.Add(article);
 						App.db.SaveChanges();
-						//Debug.WriteLine("Task {0}: article No {1} for '{2}' saved", di.ItemNo, article.AtricleNo, article.Blog.User.UserName);
 						evt.Set();
 					}
 					catch (System.Data.Entity.Infrastructure.DbUpdateException e)
@@ -178,7 +192,14 @@ namespace LJ2Book.Download
 							}
 						}
 						else
+						{
+							Debug.WriteLine("Task for item No {0}: release semaphore (db update fail)", di.ItemNo);
+							semaphore.Release();
+							if (ArticlesLoadProgressStep != null)
+								ArticlesLoadProgressStep();
+
 							throw e;
+						}
 					}
 				}
 			}), null);
@@ -186,15 +207,19 @@ namespace LJ2Book.Download
 		}
 		public void SaveArticleDetails(Article article, List<Picture> pictures)
 		{
+			Debug.WriteLine("Task for item No {0}: release semaphore, saving", article.ArticleNo);
 			semaphore.Release();
 			lock (App.dbLock)
 			{
 				var context = App.db;
 				context.Entry(article).State = EntityState.Modified;
 				context.SaveChanges();
-				foreach (var p in pictures)
-					context.Pictures.Add(p);
-				context.SaveChanges();
+				if (pictures != null)
+				{
+					foreach (var p in pictures)
+						context.Pictures.Add(p);
+					context.SaveChanges();
+				}
 				if (ArticlesLoadProgressStep != null)
 					ArticlesLoadProgressStep();
 				//Debug.WriteLine("DWM: Task '{0}' url '{1}',  details saved to DB, semaphore released", article.ArticleNo, article.Url);
@@ -215,11 +240,6 @@ namespace LJ2Book.Download
 			syncContext = _syncContext;
 			evt = manualResetEvent;
 			downloadManager = _downloadManager;
-			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
-			{
-				//Debug.WriteLine("HtmlLoader for 919: ctor");
-			}
-
 			browser = new CefSharp.OffScreen.ChromiumWebBrowser();
 			browser.BrowserInitialized += Browser_BrowserInitialized;
 			browser.FrameLoadEnd += Browser_FrameLoadEnd;
@@ -228,68 +248,73 @@ namespace LJ2Book.Download
 
 		private void Browser_FrameLoadEnd(object sender, CefSharp.FrameLoadEndEventArgs e)
 		{
-			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
-			{
-				//Debug.WriteLine("HtmlLoader for 919: Browser_FrameLoadEnd got url '{0}'", e.Url);
-			}
-			//       "https://www.livejournal.com/login.bml?returnto=https:%2F%2Ftestdev666.livejournal.com%2F919.html"
 			if (e.Url.StartsWith("https://www.livejournal.com/login.bml"))
 				SavePageToDB(false);
 			if (e.Url != Article.Url)
 				return;
-			ExtractArticleTitle();
+			ExtractArticleTitle(1);
 		}
-		private async void ExtractArticleTitle()
+		private async void ExtractArticleTitle(int tagNo)
 		{
-			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
+			string TagName = string.Empty;
+			switch (tagNo)
 			{
-				//Debug.WriteLine("HtmlLoader for 919: ExtractArticleTitle start");
+				case 1:
+					TagName = "aentry-post__title-text";
+					break;
+				case 2:
+					TagName = "entry-title";
+					break;
+				default:
+					SavePageToDB(false);
+					break;
 			}
 
-			var task = browser.EvaluateScriptAsync("(function() {{ var x = document.getElementsByClassName('aentry-post__title-text'); return x.length > 0 ? x[0].innerHTML : '';}} )();");
+			string script = string.Format("(function() {{ var x = document.getElementsByClassName('{0}'); return x.length > 0 ? x[0].innerHTML : '';}} )();", TagName);
+			var task = browser.EvaluateScriptAsync(script);
 			await task.ContinueWith(t =>
 			{
-				if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
-				{
-					//Debug.WriteLine("HtmlLoader for 919: ExtractArticleTitle task");
-				}
-
 				if (!t.IsFaulted)
 				{
 					var response = t.Result;
-					Article.RawTitle = response.Success ? response.Result.ToString() : string.Empty;
-					//Debug.WriteLine("Thread {0}: Tittle loaded: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
-					ExtractArticleBody();
+					Article.RawTitle = response.Success ? response.Result.ToString().Trim() : string.Empty;
+					if (Article.RawTitle.Length == 0)
+						ExtractArticleTitle(tagNo + 1);
+					else
+						ExtractArticleBody(1);
 				}
 				else
 					SavePageToDB(false);
 			});
 		}
-		private async void ExtractArticleBody()
+		private async void ExtractArticleBody(int tagNo)
 		{
-			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
+			string TagName = string.Empty;
+			switch (tagNo)
 			{
-				//Debug.WriteLine("HtmlLoader for 919: ExtractArticleBody start");
+				case 1:
+					TagName = "aentry-post__text";
+					break;
+				case 2:
+					TagName = "b-singlepost-body";
+					break;
+				default:
+					SavePageToDB(false);
+					break;
 			}
 
-			string script = "(function() {{ var x = document.getElementsByClassName('aentry-post__text'); return x.length > 0 ? x[0].innerHTML : '';}} )();";
-			if (Article.RawTitle.Length < 1)
-				script = script.Replace("aentry-post__text", "b-singlepost-body");
-
+			string script = string.Format("(function() {{ var x = document.getElementsByClassName('{0}'); return x.length > 0 ? x[0].innerHTML : '';}} )();", TagName);
 			var task = browser.EvaluateScriptAsync(script);
 			await task.ContinueWith(t =>
 			{
-				if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
-				{
-					//Debug.WriteLine("HtmlLoader for 919: ExtractArticleBody task");
-				}
-
 				if (!t.IsFaulted)
 				{
 					var response = t.Result;
 					Article.RawBody = response.Success ? response.Result.ToString() : string.Empty;
-					//Debug.WriteLine("Thread {0}: Body loaded: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
-					ExtractImageList();
+					if (Article.RawBody.Length == 0)
+						ExtractArticleBody(tagNo + 1);
+					else
+						ExtractImageList();
 				}
 				else
 					SavePageToDB(false);
@@ -297,11 +322,6 @@ namespace LJ2Book.Download
 		}
 		private async void ExtractImageList()
 		{
-			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
-			{
-				//Debug.WriteLine("HtmlLoader for 919: ExtractImageList start");
-			}
-
 			string script = "(function() {{ var imgs = document.getElementsByClassName('aentry-post__text')[0].getElementsByTagName('img'); var sImgs = '&'; for (var i = 0; i < imgs.length; i++) { sImgs += (imgs[i].src + '&');} return sImgs;}} )();";
 			if (Article.RawTitle.Length < 1)
 				script = script.Replace("aentry-post__text", "b-singlepost-body");
@@ -309,11 +329,6 @@ namespace LJ2Book.Download
 			var task = browser.EvaluateScriptAsync(script);
 			await task.ContinueWith(t =>
 			{
-				if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
-				{
-					//Debug.WriteLine("HtmlLoader for 919: ExtractImageList task");
-				}
-
 				if (!t.IsFaulted)
 				{
 					var response = t.Result;
@@ -326,12 +341,6 @@ namespace LJ2Book.Download
 								result.Add(s);
 						Images = result.ToArray();
 						string resultStr = string.Join("\r\n", EvaluateJavaScriptResult.ToString().Split('&'));
-						//Debug.WriteLine(string.Format("Got images list: \r\n{0}", resultStr));
-						//Debug.WriteLine("Thread {0}: Image list loaded: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
-					}
-					else
-					{
-						//Debug.WriteLine("Thread {0}: Got EMPTY images list\r\n", Thread.CurrentThread.ManagedThreadId);
 					}
 					DownloadPictures();
 				}
@@ -364,9 +373,9 @@ namespace LJ2Book.Download
 			{
 				response = (HttpWebResponse)request.GetResponse();
 			}
-			catch(System.Net.WebException e)
+			catch(System.Net.WebException /*e*/)
 			{
-				Debug.WriteLine("DownloadRemoteImageFile: got exception: " + e.Message);
+				//Debug.WriteLine("DownloadRemoteImageFile: got exception: " + e.Message);
 				blob = new byte[] { 1 };
 				return false;
 			}
@@ -400,8 +409,6 @@ namespace LJ2Book.Download
 			blob = new byte[] { 1 };
 			return false;
 		}
-
-
 		private void SavePageToDB(bool Success = true)
 		{
 			browser.BrowserInitialized -= Browser_BrowserInitialized;
@@ -409,30 +416,17 @@ namespace LJ2Book.Download
 
 			evt.WaitOne();
 
-			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
-			{
-				//Debug.WriteLine("HtmlLoader for 919: SavePageToDB start");
-			}
-
-
-			Debug.WriteLine("Thread {0}: Event setd: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
+			Debug.WriteLine("Thread {0}: Event processed succeed: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
 			syncContext.Post(new SendOrPostCallback((o) =>
 			{
-				if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
-				{
-					//Debug.WriteLine("HtmlLoader for 919: SavePageToDB ctx.Post");
-				}
-
 				Article.State = Success ? ArticleState.Ready : ArticleState.FailedToProcess;
 				downloadManager.SaveArticleDetails(Article, Pictures);
 			}), null);
 		}
-
 		private void Browser_BrowserInitialized(object sender, EventArgs e)
 		{
-			Debug.WriteLine("Thread {0}: start load '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
+			Debug.WriteLine("Thread {0}: Start process event '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
 			browser.Load(Article.Url);
-			//browser.LoadHtml(rawText, Article.Url);
 		}
 	}
 }

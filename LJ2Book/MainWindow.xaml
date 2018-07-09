@@ -9,7 +9,7 @@
 		xmlns:browseBlog="clr-namespace:LJ2Book.FormBrowseBlog"
 		xmlns:simleForms="clr-namespace:LJ2Book.SimpleForms"
         mc:Ignorable="d"
-        Title="LiveJournal to Book" Height="450" Width="800" 
+        Title="LiveJournal to Book" Height="450" Width="1000" 
 		WindowStartupLocation="CenterScreen" KeyDown="Window_KeyDown" MouseDown="Window_MouseDown"
 		ResizeMode="CanResizeWithGrip" Background="#004359" WindowStyle="None" AllowsTransparency="True">
     <Window.DataContext>

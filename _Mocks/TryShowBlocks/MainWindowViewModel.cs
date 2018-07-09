@@ -122,7 +122,7 @@ for(var i = 1; i < len; i++)
 		private void BuildText()
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.Append("<html>\r\n<head>\r\n<meta charset=\"utf-8\">");
+			sb.Append("<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<meta charset=\"utf-8\">");
 			sb.Append("</head>\r\n<body>");
 			int LabelNo = 1;
 			foreach (var a in Articles)

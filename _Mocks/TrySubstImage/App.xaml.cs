@@ -1,7 +1,13 @@
 ﻿using CefSharp;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 
-namespace TryShowPage
+namespace TrySubstImage
 {
 	/// <summary>
 	/// Interaction logic for App.xaml
@@ -10,9 +16,7 @@ namespace TryShowPage
 	{
 		private void Application_Startup(object sender, StartupEventArgs e)
 		{
-			CefSettings settings = new CefSettings();
-			settings.LogSeverity = LogSeverity.Disable;
-			Cef.Initialize(settings);
+			Cef.Initialize();
 		}
 
 		private void Application_Exit(object sender, ExitEventArgs e)

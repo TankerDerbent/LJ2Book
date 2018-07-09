@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrySubstImage", "TrySubstImage.csproj", "{9D40454C-EE01-4581-8DB4-2A2087FF184E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9D40454C-EE01-4581-8DB4-2A2087FF184E}.Debug|x64.ActiveCfg = Debug|x64
+		{9D40454C-EE01-4581-8DB4-2A2087FF184E}.Debug|x64.Build.0 = Debug|x64
+		{9D40454C-EE01-4581-8DB4-2A2087FF184E}.Release|x64.ActiveCfg = Release|x64
+		{9D40454C-EE01-4581-8DB4-2A2087FF184E}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BF3E13A9-5539-4701-A811-557AC2F43C8A}
+	EndGlobalSection
+EndGlobal

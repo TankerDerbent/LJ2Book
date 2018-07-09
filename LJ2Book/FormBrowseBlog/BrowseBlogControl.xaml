@@ -7,7 +7,7 @@
 			 xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
 			 xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
              mc:Ignorable="d" 
-             d:DesignHeight="200" d:DesignWidth="800">
+             d:DesignHeight="200" d:DesignWidth="900">
 	<UserControl.DataContext>
 		<local:BrowseBlogViewModel />
 	</UserControl.DataContext>
@@ -29,8 +29,8 @@
 				<toolkit:WatermarkTextBox Watermark="Search by text" Text="{Binding TextToSearch}" MaxWidth="200" VerticalContentAlignment="Center" TextAlignment="Left" Margin="3" MinWidth="200" />
 				<Button Content="Refresh" VerticalAlignment="Center" Margin="0,3,3,3" MinWidth="80" Command="{Binding DoSearch}" Height="24" />
 				<CheckBox Content="Hide Private Records" VerticalAlignment="Center" Margin="0,3,3,3" IsChecked="{Binding DoNotShowHiddenArticles}" />
-				<ToggleButton Content="Reverse sort" Margin="0,3,3,3" IsChecked="{Binding IsReverseSorting}" />
-				<ToggleButton Content="{Binding ShowModeText}" Margin="0,3,3,3" IsChecked="{Binding TextShown}" Command="{Binding ToggleMode}" />
+				<ToggleButton Content="{Binding ToggleSortText}" Margin="0,3,3,3" MinWidth="100" IsChecked="{Binding IsReverseSorting}" />
+				<ToggleButton Content="{Binding ShowModeText}" Margin="0,3,3,3" MinWidth="100" Padding="3" IsChecked="{Binding TextShown}" Command="{Binding ToggleMode}" />
 			</StackPanel>
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 				<TextBox IsReadOnly="True" Margin="3" Text="{Binding SelectedTags, Mode=OneWay}" MinWidth="180" Background="LightGray" VerticalContentAlignment="Center" />

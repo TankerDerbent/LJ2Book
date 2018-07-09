@@ -16,6 +16,6 @@
             <Button Name="btn" Content="Show" DockPanel.Dock="Right" Margin="3" Command="{Binding ShowPageCommand}" IsEnabled="{Binding IsButtonEnabled}" />
             <TextBox Margin="3" Text="{Binding TextAddress}" IsEnabled="{Binding IsButtonEnabled}" />
         </DockPanel>
-        <cefSharp:ChromiumWebBrowser Name="browserOnForm" Grid.Row="1" Address="{Binding BrowserAddress}" />
+		<cefSharp:ChromiumWebBrowser Name="browserOnForm" Grid.Row="1" Address="{Binding BrowserAddress}" />
     </Grid>
 </Window>

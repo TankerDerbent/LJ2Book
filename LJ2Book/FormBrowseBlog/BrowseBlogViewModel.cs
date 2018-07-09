@@ -11,6 +11,7 @@ using CefSharp;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Data.Entity;
+using System.IO;
 
 namespace LJ2Book.FormBrowseBlog
 {
@@ -29,9 +30,12 @@ namespace LJ2Book.FormBrowseBlog
 					SwitchToText();
 			}
 		}
+		public string ShowModeText { get => _formMode == EFormMode.Text ? "Show Content" : "Show Text"; }
+		public string ToggleSortText { get => _isReverseSorting ? "Sort ASC" : "Sort DESC"; }
 		private void SortContent()
 		{
 			Articles = IsReverseSorting ? Articles.OrderByDescending(a => a.DT).ToList() : Articles.OrderBy(a => a.DT).ToList();
+			OnPropertyChanged(() => ToggleSortText);
 		}
 		public ICommand ToggleMode
 		{
@@ -51,19 +55,21 @@ namespace LJ2Book.FormBrowseBlog
 		{
 			BuildTextAndPreparePictures();
 			var ctrl = (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog;
-			ctrl.browser
+			foreach (var img in _CachedImages)
+				ctrl.browser.RegisterResourceHandler(img.Url, img.imageStream, img.mimeType);
 			ctrl.browser.LoadHtml(_TextToShow);
 			ctrl.browser.Visibility = Visibility.Visible;
 			ctrl.listbox.Visibility = Visibility.Hidden;
 		}
-
+		private List<CachedImage> _CachedImages;
 		private void BuildTextAndPreparePictures()
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.Append("<html>\r\n<head>\r\n<meta charset=\"utf-8\">");
+			sb.Append("<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<meta charset=\"utf-8\">");
 			sb.Append("</head>\r\n<body>");
 			int LabelNo = 1;
-			List<string> imagesUrls = new List<string>();
+			//List<string> imagesUrls = new List<string>();
+			_CachedImages = new List<CachedImage>();
 			Regex rxImageTag = new Regex("<img[^<]*>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 			Regex rxImageUrl = new Regex("src=\\\"([^\\\"]*)\"", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 			foreach (var a in Articles)
@@ -81,19 +87,22 @@ namespace LJ2Book.FormBrowseBlog
 				{
 					Match matchUrl = rxImageUrl.Match(match.Groups[0].Value.ToString());
 					string url = matchUrl.Groups[1].Value.ToString();
-					if (url.Length > 0)
-						imagesUrls.Add(url);
+					var picture = App.db.Pictures.Find(new string[] { url });
+					if (picture != null)
+					{
+						Debug.WriteLine(string.Format("Found cached img: '{0}'", url));
+						MemoryStream msImage = new MemoryStream();
+						msImage.Write(picture.Data, 0, picture.Data.Length);
+						_CachedImages.Add(new CachedImage { Url = url, imageStream = msImage });
+					}
+					else
+					{
+						Debug.WriteLine(string.Format("Cached img: '{0}' not found", url));
+					}
 				}
 			}
 			sb.Append("\r\n</body>\r\n</html>");
 			_TextToShow = sb.ToString();
-			_Pictures = new List<Picture>();
-			if (imagesUrls.Count > 0)
-			{
-				var qryPics = from p in App.db.Pictures where imagesUrls.Contains(p.Url) select p;
-				foreach (var p in qryPics)
-					_Pictures.Add(p);
-			}
 		}
 
 		private void SwitchToContent()
@@ -209,7 +218,8 @@ namespace LJ2Book.FormBrowseBlog
 				Stub = Stub.Where(a => a.TagArray.Intersect(_SelectedTags.ToArray()).Any()).ToList();
 			// end filter parse
 			Articles = Stub;
-
+			SortContent();
+			
 			OnPropertyChanged(() => Articles);
 		}
 		public ICommand DoSearch
@@ -232,7 +242,7 @@ namespace LJ2Book.FormBrowseBlog
 		}
 		private ObservableCollection<TagItem> _TagsList;
 		private string _TextToShow;
-		private List<Picture> _Pictures;
+		//private List<Picture> _Pictures;
 
 		public ObservableCollection<TagItem> TagsList { get { return _TagsList; } set { _TagsList = value; OnPropertyChanged(() => TagsList); } }
 		public ICommand TagsListChanged
@@ -262,5 +272,11 @@ namespace LJ2Book.FormBrowseBlog
 		public string Name { get; set; }
 		private bool _IsChecked = false;
 		public bool IsChecked { get { return _IsChecked; } set { _IsChecked = value; OnPropertyChanged(() => IsChecked); } }
+	}
+	class CachedImage
+	{
+		public string Url { get; set; }
+		public string mimeType { get { string ext = Path.GetExtension(Url); return ResourceHandler.GetMimeType(ext.Length == 0 ? ".jpg" : ext); } }
+		public MemoryStream imageStream { get; set; }
 	}
 }

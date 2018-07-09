@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Threading;
+using System.IO;
 
 namespace TryShowPage
 {
@@ -49,8 +50,17 @@ namespace TryShowPage
 			//TextAddress = @"https://testdev666.livejournal.com/919.html";// article 3: hidden
 			//TextAddress = @"https://testdev666.livejournal.com/1274.html";// article 4: hidden
 			TextAddress = @"https://testdev666.livejournal.com/1496.html";// article 5: with youtube
+			//TextAddress = @"file:///D:/1496_full.html";
+			//TextAddress = @"file:///D:/test_png.html";
 
+			string proxyPngFile = @"D:\2.png";
+			bytesProxyPngImage = File.ReadAllBytes(proxyPngFile);
+
+			msProxyPngImage = new MemoryStream();
+			msProxyPngImage.Write(bytesProxyPngImage, 0, bytesProxyPngImage.Length);
 		}
+		private byte[] bytesProxyPngImage;
+		private MemoryStream msProxyPngImage;
 		private void LoadRawPage()
 		{
 			Debug.WriteLine("ThreadID = {0}, LoadRawPage", Thread.CurrentThread.ManagedThreadId);
@@ -61,9 +71,10 @@ namespace TryShowPage
 
 		private void Browser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
 		{
-			Debug.WriteLine("ThreadID = {0}, Browser_FrameLoadEnd", Thread.CurrentThread.ManagedThreadId);
+			Debug.WriteLine("ThreadID = {0}, Browser_FrameLoadEnd '{1}'", Thread.CurrentThread.ManagedThreadId, e.Url);
 			if (e.Url != TextAddress)
 				return;
+
 			ExtractArticleTitle();
 		}
 		private string Title = string.Empty;
@@ -164,10 +175,12 @@ namespace TryShowPage
 				_owner.browserOnForm.LoadHtml(response);
 			}));
 		}
-
+		
 		private void Browser_BrowserInitialized(object sender, EventArgs e)
 		{
 			Debug.WriteLine("ThreadID = {0}, Browser_BrowserInitialized", Thread.CurrentThread.ManagedThreadId);
+			browser.RegisterResourceHandler("1.png", msProxyPngImage, ResourceHandler.GetMimeType(".png"));
+			//ILoadHandler
 			browser.Load(TextAddress);
 		}
 

@@ -11,7 +11,7 @@
         mc:Ignorable="d"
         Title="LiveJournal to Book" Height="450" Width="1000" 
 		WindowStartupLocation="CenterScreen" KeyDown="Window_KeyDown" MouseDown="Window_MouseDown"
-		ResizeMode="CanResizeWithGrip" Background="#004359" WindowStyle="None" AllowsTransparency="True">
+		ResizeMode="CanResize" Background="#004359" WindowStyle="None" >
     <Window.DataContext>
         <local:MainWindowViewModel />
     </Window.DataContext>

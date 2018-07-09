@@ -134,6 +134,9 @@ namespace LJ2Book.Download
 			catch (FailedToGetEventByNoException e)
 			{
 				Debug.WriteLine(e.Message);
+				semaphore.Release();
+				if (ArticlesLoadProgressStep != null)
+					ArticlesLoadProgressStep();
 				return;
 			}
 			Article article = new Article

@@ -111,6 +111,8 @@
 							<StackPanel Grid.Column="3" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding UpdateProgressVisibility}">
 								<TextBlock Text="Update Progress:" FontSize="10"/>
 								<ProgressBar Maximum="{Binding ProgressMax}" Value="{Binding ProgressValue}" MaxWidth="50" MaxHeight="15" />
+								<TextBlock Text="{Binding RemainedTimeText}" FontSize="10" />
+								<TextBlock Text="{Binding ReadyItemsText}" FontSize="10" />
 							</StackPanel>
 							<Button Grid.Column="4" Content="GO" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.UpdateItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
 							<Button Grid.Column="5" Content="Del" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.ClearArticles, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />

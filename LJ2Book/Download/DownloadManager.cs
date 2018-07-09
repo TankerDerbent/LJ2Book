@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Windows;
 using static LJ2Book.LiveJournalAPI.Connection;
@@ -76,7 +78,7 @@ namespace LJ2Book.Download
 				}
 				else
 				{
-					var qryArticles = from a in _blog.Articles select a.AtricleNo;
+					var qryArticles = from a in _blog.Articles select a.ArticleNo;
 					
 					listItemsToSync = Enumerable.Range(1, _blog.LastItemNo).Except(qryArticles.ToArray()).ToList();
 				}
@@ -126,7 +128,7 @@ namespace LJ2Book.Download
 				lock (cnnSyncObject)
 				{
 					ev = cnn.GetEventByNo(di.Target, di.ItemNo);
-					Debug.WriteLine("DWM: Task {0}: for target {1} got event {2}", di.ItemNo, di.Target, ev.url);
+					//Debug.WriteLine("DWM: Task {0}: for target {1} got event {2}, tags '{3}'", di.ItemNo, di.Target, ev.url, ev.Params.ContainsKey("taglist") ? ev.Params["taglist"] : string.Empty);
 				}
 			}
 			catch (FailedToGetEventByNoException e)
@@ -134,7 +136,18 @@ namespace LJ2Book.Download
 				Debug.WriteLine(e.Message);
 				return;
 			}
-			Article article = new Article { AtricleNo = di.ItemNo, Anum = ev.anum, State = ArticleState.Queued, Url = ev.url, ArticleDT = ev.eventtime, RawTitle = string.Empty, RawBody = string.Empty, Blog = di.blog };
+			Article article = new Article
+			{
+				ArticleNo = di.ItemNo,
+				Anum = ev.anum,
+				State = ArticleState.Queued,
+				Url = ev.url,
+				ArticleDT = ev.eventtime,
+				RawTitle = string.Empty,
+				RawBody = string.Empty,
+				Tags = ev.Params.ContainsKey("taglist") ? ev.Params["taglist"].Replace(", ", ",") : string.Empty,
+				Blog = di.blog
+			};
 			ManualResetEvent evt = new ManualResetEvent(false);
 			di.sc.Post(new SendOrPostCallback((o)=>
 			{
@@ -157,7 +170,7 @@ namespace LJ2Book.Download
 								System.Data.SQLite.SQLiteException e3 = e2.InnerException as System.Data.SQLite.SQLiteException;
 								if (e3.ResultCode == System.Data.SQLite.SQLiteErrorCode.Constraint)
 								{
-									MessageBox.Show(string.Format("Fail to insert article No: '{0}'", article.AtricleNo.ToString()));
+									MessageBox.Show(string.Format("Fail to insert article No: '{0}'", article.ArticleNo.ToString()));
 								}
 							}
 						}
@@ -168,19 +181,20 @@ namespace LJ2Book.Download
 			}), null);
 			HtmlLoader loaderStage2 = new HtmlLoader(article, di.sc, evt, this);
 		}
-		public void SaveArticleDetails(Article article)
+		public void SaveArticleDetails(Article article, List<Picture> pictures)
 		{
-			lock(App.dbLock)
+			semaphore.Release();
+			lock (App.dbLock)
 			{
 				var context = App.db;
 				context.Entry(article).State = EntityState.Modified;
 				context.SaveChanges();
+				foreach (var p in pictures)
+					context.Pictures.Add(p);
+				context.SaveChanges();
 				if (ArticlesLoadProgressStep != null)
 					ArticlesLoadProgressStep();
-
-				semaphore.Release();
-
-				Debug.WriteLine("DWM: Task '{0}' url '{1}',  details saved to DB, semaphore released", article.AtricleNo, article.Url);
+				//Debug.WriteLine("DWM: Task '{0}' url '{1}',  details saved to DB, semaphore released", article.ArticleNo, article.Url);
 			}
 		}
 	}
@@ -200,7 +214,7 @@ namespace LJ2Book.Download
 			downloadManager = _downloadManager;
 			if (this.Article.Url == "https://testdev666.livejournal.com/919.html")
 			{
-				Debug.WriteLine("HtmlLoader for 919: ctor");
+				//Debug.WriteLine("HtmlLoader for 919: ctor");
 			}
 
 			browser = new CefSharp.OffScreen.ChromiumWebBrowser();
@@ -316,12 +330,64 @@ namespace LJ2Book.Download
 					{
 						//Debug.WriteLine("Thread {0}: Got EMPTY images list\r\n", Thread.CurrentThread.ManagedThreadId);
 					}
-					SavePageToDB();
+					DownloadPictures();
 				}
 				else
 					SavePageToDB(false);
 			});
 		}
+		private List<Picture> Pictures = new List<Picture>();
+		private void DownloadPictures()
+		{
+			if (Images.Count() > 0)
+			{
+				App.db.Pictures.Load();
+				string[] ImagesToLoad = Images.Except((from p in App.db.Pictures select p.Url).ToArray()).ToArray();
+				foreach (var url in ImagesToLoad)
+				{
+					byte[] blob;
+					if (DownloadRemoteImageFile(url, out blob))
+						Pictures.Add(new Picture { Url = url, Data = blob });
+				}
+			}
+			SavePageToDB();
+		}
+
+		private static bool DownloadRemoteImageFile(string uri, out byte[] blob)
+		{
+			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+			HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+			// Check that the remote file was found. The ContentType
+			// check is performed since a request for a non-existent
+			// image file might be redirected to a 404-page, which would
+			// yield the StatusCode "OK", even though the image was not
+			// found.
+			if ((response.StatusCode == HttpStatusCode.OK ||
+				response.StatusCode == HttpStatusCode.Moved ||
+				response.StatusCode == HttpStatusCode.Redirect) &&
+				response.ContentType.StartsWith("image", StringComparison.OrdinalIgnoreCase))
+			{
+
+				// if the remote file was found, download oit
+				using (Stream inputStream = response.GetResponseStream())
+				using (MemoryStream outputStream = new MemoryStream())
+				{
+					byte[] buffer = new byte[4096];
+					int bytesRead;
+					do
+					{
+						bytesRead = inputStream.Read(buffer, 0, buffer.Length);
+						outputStream.Write(buffer, 0, bytesRead);
+					} while (bytesRead != 0);
+					blob = outputStream.ToArray();
+					return true;
+				}
+			}
+			blob = new byte[] { 1 };
+			return false;
+		}
+
 
 		private void SavePageToDB(bool Success = true)
 		{
@@ -345,7 +411,7 @@ namespace LJ2Book.Download
 				}
 
 				Article.State = Success ? ArticleState.Ready : ArticleState.FailedToProcess;
-				downloadManager.SaveArticleDetails(Article);
+				downloadManager.SaveArticleDetails(Article, Pictures);
 			}), null);
 		}
 

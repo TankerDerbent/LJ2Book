@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LJ2Book.FormBrowseBlog"
 			 xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
+			 xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="800">
 	<UserControl.DataContext>
@@ -28,14 +29,18 @@
 				<toolkit:WatermarkTextBox Watermark="Search by text" Text="{Binding TextToSearch}" MaxWidth="200" VerticalContentAlignment="Center" TextAlignment="Left" Margin="3" MinWidth="200" />
 				<Button Content="Refresh" VerticalAlignment="Center" Margin="0,3,3,3" MinWidth="80" Command="{Binding DoSearch}" Height="24" />
 				<CheckBox Content="Hide Private Records" VerticalAlignment="Center" Margin="0,3,3,3" IsChecked="{Binding DoNotShowHiddenArticles}" />
+				<ToggleButton Content="Reverse sort" Margin="0,3,3,3" IsChecked="{Binding IsReverseSorting}" />
+				<ToggleButton Content="{Binding ShowModeText}" Margin="0,3,3,3" IsChecked="{Binding TextShown}" Command="{Binding ToggleMode}" />
 			</StackPanel>
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 				<TextBox IsReadOnly="True" Margin="3" Text="{Binding SelectedTags, Mode=OneWay}" MinWidth="180" Background="LightGray" VerticalContentAlignment="Center" />
-				<Button Content=">" MinWidth="15" Margin="3" Click="Button_Click" />
+				<Button Name="btnSelectTags" Content=">" MinWidth="15" Margin="3" Click="ButtonSelectTags_Click" />
+				<Button Name="btnApplyTags" Content="Apply tags" Margin="3" Click="ButtonApplyTags_Click" Visibility="Collapsed" />
 			</StackPanel>
 			
 		</DockPanel>
-        <ListView Grid.Row="1" ItemsSource="{Binding Articles}">
+		<cefSharp:ChromiumWebBrowser Name="browser" Grid.Row="1" Visibility="Hidden" />
+        <ListView Name="listbox" Grid.Row="1" ItemsSource="{Binding Articles}">
 			<ListView.ItemTemplate>
 				<DataTemplate DataType="{x:Type local:ArticleWrapper}">
 					<Grid>

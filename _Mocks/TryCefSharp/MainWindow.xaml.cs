@@ -96,7 +96,7 @@ namespace TryCefSharp
 					{
 						if (s.Length < 1)
 							continue;
-						string sFileName = "D:\\" + s.Substring(s.LastIndexOf('/') + 1);
+						string sFileName = "C:\\NC\\" + s.Substring(s.LastIndexOf('/') + 1);
 						MainWindow.DownloadRemoteImageFile(s, sFileName);
 						Debug.WriteLine(string.Format("Image {0} saved to {1}", s, sFileName));
 						//img1st.Dispatcher.BeginInvoke(new Action(delegate ()

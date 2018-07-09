@@ -2,16 +2,12 @@
 using SimplesNet;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media.Animation;
 
 namespace TryShowBlocks
 {
@@ -29,7 +25,7 @@ namespace TryShowBlocks
 			DateTime dtStart = DateTime.Parse("1.1.2018 16:35");
 			for (int i = 1; i < 5; i++)
 			{
-				string[] Lines = File.ReadAllLines(string.Format("D:\\ProjOther\\_Try\\TryShowPage\\TryShowPage\\files\\{0}.htm", i), Encoding.UTF8);
+				string[] Lines = File.ReadAllLines(string.Format("C:\\Projects\\WinApps\\LJ2Book\\_Mocks\\TryShowBlocks\\files\\{0}.htm", i), Encoding.UTF8);
 				Articles.Add(new ArticleWrapper(dtStart.AddDays(i), Lines[0], string.Join("\r\n", Lines.Skip(1))));
 			}
 			IsReverseSorting = false;

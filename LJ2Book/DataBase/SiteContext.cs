@@ -23,6 +23,7 @@ namespace LJ2Book.DataBase
 		public DbSet<User> Users { get; set; }
 		public DbSet<Blog> Blogs { get; set; }
 		public DbSet<Article> Articles { get; set; }
+		public DbSet<Picture> Pictures { get; set; }
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder)
 		{

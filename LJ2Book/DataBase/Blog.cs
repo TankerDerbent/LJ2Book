@@ -20,13 +20,5 @@ namespace LJ2Book.DataBase
 		public bool StorePictures { get; set; }
 		public virtual User User { get; set; }
 		public ICollection<Article> Articles { get; set; }
-		//[NotMapped]
-		//public string BlogName { get => User.UserName; }
-		//[NotMapped]
-		//public string KindOfSynchronizationText { get => KindOfSynchronization == KindOfSynchronization.Auto ? "Auto" : "Manual";  }
-		//[NotMapped]
-		//public string LastUpdateAsText { get => LastSync == DateTime.MinValue ? "Never" : LastSync.ToString(); }
-		//[NotMapped]
-		//public string LastItemNoText { get => LastItemNo < 1 ? "Unknown" : LastItemNo.ToString(); }
 	}
 }

@@ -25,15 +25,28 @@ namespace LJ2Book.FormBrowseBlog
         {
             InitializeComponent();
         }
-		private bool PanelOpened = false;
-		private void Button_Click(object sender, RoutedEventArgs e)
+		//private bool PanelOpened = false;
+		private void ButtonSelectTags_Click(object sender, RoutedEventArgs e)
 		{
-			string storyBoardName = PanelOpened ? "TogglePanelOff" : "TogglePanelOn";
-			Storyboard sb = Resources[storyBoardName] as Storyboard;
+			btnSelectTags.Visibility = Visibility.Collapsed;
+			btnApplyTags.Visibility = Visibility.Visible;
+			//string storyBoardName = PanelOpened ? "TogglePanelOff" : "TogglePanelOn";
+			Storyboard sb = Resources["TogglePanelOn"] as Storyboard;
 			if (sb != null)
 				sb.Begin(listTags);
 
-			PanelOpened = !PanelOpened;
+			//PanelOpened = !PanelOpened;
+		}
+
+		private void ButtonApplyTags_Click(object sender, RoutedEventArgs e)
+		{
+			btnSelectTags.Visibility = Visibility.Visible;
+			btnApplyTags.Visibility = Visibility.Collapsed;
+			Storyboard sb = Resources["TogglePanelOff"] as Storyboard;
+			if (sb != null)
+				sb.Begin(listTags);
+
+			(this.DataContext as BrowseBlogViewModel).ApplyTags();
 		}
 	}
 }

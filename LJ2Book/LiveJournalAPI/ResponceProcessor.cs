@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 
 namespace LJ2Book.LiveJournalAPI
@@ -17,6 +18,9 @@ namespace LJ2Book.LiveJournalAPI
 		public string ErrorMessage { get { return sd["errmsg"]; } }
 		public bool TryParseAsGeteventLastnResult(out List<LiveJournalEvent> _result)
 		{
+			//string[] separator = { Guid.NewGuid().ToString() };
+			//source = source.Replace(", ", separator[0]);
+			//string[] ss = source.Split(separator, StringSplitOptions.None);
 			_result = new List<LiveJournalEvent>();
 			if (!IsOK)
 				return false;
@@ -45,6 +49,8 @@ namespace LJ2Book.LiveJournalAPI
 				int itemid = Convert.ToInt32(sd[string.Format("prop_{0}_itemid", i)]);
 				string name = sd[string.Format("prop_{0}_name", i)];
 				string value = sd[string.Format("prop_{0}_value", i)];
+
+				//Debug.WriteLine("For itemId={0} prop[{1}]='{2}'", itemid, name, value);
 
 				if ((from lje in _result where lje.itemid == itemid select lje).Count() == 1)
 					(from lje in _result where lje.itemid == itemid select lje).First().Params[name] = value;

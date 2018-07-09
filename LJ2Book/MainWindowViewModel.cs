@@ -117,7 +117,7 @@ namespace LJ2Book
 				OnPropertyChanged(() => ReadBlogControlVisibility);
 
 				if (_Mode == MainWindowMode.ReadBlog)
-					BrowseBlogVM.RawArticlesListChanged();
+					BrowseBlogVM.SelectedBlogChanged();
 			}
 		}
 

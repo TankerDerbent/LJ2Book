@@ -108,6 +108,7 @@
     <Compile Include="DataBase\Article.cs" />
     <Compile Include="DataBase\Blog.cs" />
     <Compile Include="DataBase\Params.cs" />
+    <Compile Include="DataBase\Picture.cs" />
     <Compile Include="DataBase\SiteContext.cs" />
     <Compile Include="DataBase\User.cs" />
     <Compile Include="Download\DownloadManager.cs" />

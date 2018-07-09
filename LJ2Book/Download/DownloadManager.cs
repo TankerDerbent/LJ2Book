@@ -135,6 +135,8 @@ namespace LJ2Book.Download
 			{
 				Debug.WriteLine(e.Message);
 				semaphore.Release();
+				if (ArticlesLoadProgressStep != null)
+					ArticlesLoadProgressStep();
 				return;
 			}
 			Article article = new Article

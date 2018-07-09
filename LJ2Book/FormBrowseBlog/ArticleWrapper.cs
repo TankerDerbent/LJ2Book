@@ -42,7 +42,7 @@ namespace LJ2Book.FormBrowseBlog
 		// public methods
 		public bool HasWords(string[] words)
 		{
-			string[] TitleWords = RawTitle.ToLower().Split(' ');
+			string[] TitleWords = RawTitle.ToLower().Split(' ').Distinct().ToArray();
 			if (TitleWords.Intersect(words).Any())
 				return true;
 

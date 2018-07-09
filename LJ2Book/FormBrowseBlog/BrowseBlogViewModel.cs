@@ -57,7 +57,7 @@ namespace LJ2Book.FormBrowseBlog
 			var ctrl = (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog;
 			foreach (var img in _CachedImages)
 				ctrl.browser.RegisterResourceHandler(img.Url, img.imageStream, img.mimeType);
-			ctrl.browser.LoadHtml(_TextToShow);
+			ctrl.browser.LoadHtml(_TextToShow, true);
 			ctrl.browser.Visibility = Visibility.Visible;
 			ctrl.listbox.Visibility = Visibility.Hidden;
 		}

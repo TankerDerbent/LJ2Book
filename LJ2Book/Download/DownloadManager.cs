@@ -134,6 +134,7 @@ namespace LJ2Book.Download
 			catch (FailedToGetEventByNoException e)
 			{
 				Debug.WriteLine(e.Message);
+				semaphore.Release();
 				return;
 			}
 			Article article = new Article
@@ -356,7 +357,17 @@ namespace LJ2Book.Download
 		private static bool DownloadRemoteImageFile(string uri, out byte[] blob)
 		{
 			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-			HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+			HttpWebResponse response;
+			try
+			{
+				response = (HttpWebResponse)request.GetResponse();
+			}
+			catch(System.Net.WebException e)
+			{
+				Debug.WriteLine("DownloadRemoteImageFile: got exception: " + e.Message);
+				blob = new byte[] { 1 };
+				return false;
+			}
 
 			// Check that the remote file was found. The ContentType
 			// check is performed since a request for a non-existent

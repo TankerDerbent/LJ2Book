@@ -18,7 +18,6 @@ namespace LJ2Book.DataBase
 		public string Password { get; set; }
 		public UserType UserType { get; set; }
 		public virtual Blog Blog {get; set;}
-		public virtual ICollection<Article> Articles { get; set; }
 		public override string ToString()
 		{
 			string sLoginInfo = "w/o login";

@@ -103,6 +103,7 @@ namespace LJ2Book.Download
 
 			List<DownloadManagerTaskInfo> diList = new List<DownloadManagerTaskInfo>();
 			List<Article> Articles = new List<Article>();
+			int n = 0;
 			foreach (var i in listItemsToSync)
 			{
 				Thread.Sleep(205);
@@ -129,6 +130,10 @@ namespace LJ2Book.Download
 							article.Tags = Event.Params["taglist"].Replace(", ", ",");
 
 						diList.Add(new DownloadManagerTaskInfo { article = article, SyncContext = this.WpfSyncContext });
+						n += 1;
+
+						if (n > 20)
+							break;
 					}
 					Articles.Add(article);
 				}

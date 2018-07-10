@@ -128,7 +128,7 @@ namespace LJ2Book.Download
 						if (Event.Params.ContainsKey("taglist"))
 							article.Tags = Event.Params["taglist"].Replace(", ", ",");
 
-						diList.Add(new DownloadManagerTaskInfo { article = article, SyncContext = this.WpfSyncContext, blog = _blog });
+						diList.Add(new DownloadManagerTaskInfo { article = article, SyncContext = this.WpfSyncContext });
 					}
 					Articles.Add(article);
 				}
@@ -147,6 +147,7 @@ namespace LJ2Book.Download
 			if (ArticlesLoadingOverallProgressChangedStage2 != null)
 				ArticlesLoadingOverallProgressChangedStage2(NumberItemsToDownload);
 
+			Debug.WriteLine(string.Format("Semaphore: Create and lock {0}", DOWNLOAD_THREADS));
 			semaphore = new Semaphore(0, DOWNLOAD_THREADS);
 			do
 			{
@@ -157,11 +158,15 @@ namespace LJ2Book.Download
 					ThreadPool.QueueUserWorkItem(DownloadThread, dmti);
 					diList.RemoveAt(0);
 				}
+				Debug.WriteLine(string.Format("Semaphore: mgr Release {0}", Limit));
 				semaphore.Release(Limit);
 				Thread.Sleep(100);
 
 				for (int i = 0; i < Limit; i++)
+				{
+					Debug.WriteLine(string.Format("Semaphore: mgr Lock +1"));
 					semaphore.WaitOne();
+				}
 			}
 			while (diList.Count > 0);
 		}
@@ -201,19 +206,14 @@ namespace LJ2Book.Download
 
 		private class DownloadManagerTaskInfo
 		{
-			//public string Target;
-			//public int ItemNo;
-			//public LiveJournalEvent Event;
 			public Article article;
 			public SynchronizationContext SyncContext;
-			public Blog blog;
-			//public bool ShouldProcessPage;
 		}
 		private void DownloadThread(Object _di)
 		{
 			if (!(_di is DownloadManagerTaskInfo))
 				return;
-
+			Debug.WriteLine(string.Format("Semaphore: dw thread Lock +1"));
 			semaphore.WaitOne();
 
 			DownloadManagerTaskInfo di = _di as DownloadManagerTaskInfo;
@@ -223,6 +223,7 @@ namespace LJ2Book.Download
 		}
 		public void SaveArticleDetails(Article article, List<Picture> pictures)
 		{
+			Debug.WriteLine(string.Format("Semaphore: Release -1"));
 			semaphore.Release();
 			lock (App.dbLock)
 			{

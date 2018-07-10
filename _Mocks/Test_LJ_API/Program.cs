@@ -15,10 +15,10 @@ namespace Test_LJ_API
 			// 29.04.2018 16:26
 			//string sUser = "testdev666";
 			//string sPass = "jopa3666joPa";
-			//string sTarget = "evo_lutio";
+			string sTarget = "evo_lutio";
 			string sUser = "lazybiker";
 			string sPass = "Slonik26";
-			string sTarget = "testdev666";
+			//string sTarget = "testdev666";
 
 			CollectedLog logger = new CollectedLog();
 			FlatLJServer server = new FlatLJServer(logger);
@@ -64,8 +64,10 @@ namespace Test_LJ_API
 			//string qry1 = string.Format("mode=getevents&auth_method=cookie&selecttype=syncitems&lastsync=2007-01-01 00:00:00&user={0}&usejournal={1}", sUser, sTarget);
 
 			//string qryGetEvents = string.Format("mode=getevents&auth_method=cookie&selecttype=lastn&howmany=5&user={0}&usejournal={1}", sUser, sTarget);
-			string qryGetEvents = string.Format("mode=getevents&auth_method=cookie&selecttype=one&itemid={2}&user={0}&usejournal={1}", sUser, sTarget, 2.ToString());
+			// 149 132 125
+			string qryGetEvents = string.Format("mode=getevents&auth_method=cookie&selecttype=one&itemid={2}&user={0}&usejournal={1}", sUser, sTarget, 1.ToString());
 			server.DoCustomQuery(qryGetEvents);
+			ResponseProcessor rp_ = new ResponseProcessor(logger.ToArray());
 			return;
 
 			ResponseProcessor rp = new ResponseProcessor(logger.ToArray());

@@ -147,28 +147,7 @@ namespace LJ2Book.Download
 			if (ArticlesLoadingOverallProgressChangedStage2 != null)
 				ArticlesLoadingOverallProgressChangedStage2(NumberItemsToDownload);
 
-			Debug.WriteLine(string.Format("Semaphore: Create and lock {0}", DOWNLOAD_THREADS));
-			semaphore = new Semaphore(0, DOWNLOAD_THREADS);
-			do
-			{
-				int Limit = diList.Count >= DOWNLOAD_THREADS ? DOWNLOAD_THREADS : diList.Count;
-				for (int i = 0; i < Limit; i++)
-				{
-					DownloadManagerTaskInfo dmti = diList[0];
-					ThreadPool.QueueUserWorkItem(DownloadThread, dmti);
-					diList.RemoveAt(0);
-				}
-				Debug.WriteLine(string.Format("Semaphore: mgr Release {0}", Limit));
-				semaphore.Release(Limit);
-				Thread.Sleep(100);
-
-				for (int i = 0; i < Limit; i++)
-				{
-					Debug.WriteLine(string.Format("Semaphore: mgr Lock +1"));
-					semaphore.WaitOne();
-				}
-			}
-			while (diList.Count > 0);
+			ThreadPool.QueueUserWorkItem(ControlThread, diList);
 		}
 
 		private void SaveArticlesToDB(List<Article> articles)
@@ -204,6 +183,33 @@ namespace LJ2Book.Download
 			}
 		}
 
+		private void ControlThread(Object _obj)
+		{
+			List<DownloadManagerTaskInfo> diList = _obj as List<DownloadManagerTaskInfo>;
+			Debug.WriteLine(string.Format("Semaphore: Create and lock +{0}", DOWNLOAD_THREADS));
+			semaphore = new Semaphore(0, DOWNLOAD_THREADS);
+			do
+			{
+				int Limit = diList.Count >= DOWNLOAD_THREADS ? DOWNLOAD_THREADS : diList.Count;
+				for (int i = 0; i < Limit; i++)
+				{
+					DownloadManagerTaskInfo dmti = diList[0];
+					ThreadPool.QueueUserWorkItem(DownloadThread, dmti);
+					diList.RemoveAt(0);
+				}
+				Debug.WriteLine(string.Format("Semaphore: ctrl Release -{0}", Limit));
+				semaphore.Release(Limit);
+				Thread.Sleep(100);
+
+				for (int i = 0; i < Limit; i++)
+				{
+					Debug.WriteLine(string.Format("Semaphore: ctrl Wait..."));
+					semaphore.WaitOne();
+					Debug.WriteLine(string.Format("Semaphore: ctrl Lock +1"));
+				}
+			}
+			while (diList.Count > 0);
+		}
 		private class DownloadManagerTaskInfo
 		{
 			public Article article;
@@ -213,8 +219,9 @@ namespace LJ2Book.Download
 		{
 			if (!(_di is DownloadManagerTaskInfo))
 				return;
-			Debug.WriteLine(string.Format("Semaphore: dw thread Lock +1"));
+			Debug.WriteLine(string.Format("Semaphore: dw thread Wait..."));
 			semaphore.WaitOne();
+			Debug.WriteLine(string.Format("Semaphore: dw thread Lock +1"));
 
 			DownloadManagerTaskInfo di = _di as DownloadManagerTaskInfo;
 			Debug.WriteLine("Task started for item No {0}: lock semaphore", di.article.ArticleNo);
@@ -247,7 +254,6 @@ namespace LJ2Book.Download
 		Article Article;
 		CefSharp.OffScreen.ChromiumWebBrowser browser;
 		SynchronizationContext syncContext;
-		//ManualResetEvent evt;
 		DownloadManager downloadManager;
 		public HtmlLoader(Article _article, SynchronizationContext _syncContext, DownloadManager _downloadManager)
 		{

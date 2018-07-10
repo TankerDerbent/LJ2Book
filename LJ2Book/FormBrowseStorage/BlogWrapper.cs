@@ -50,7 +50,7 @@ namespace LJ2Book.FormBrowseStorage
 			_DownloadStarted = DateTime.Now;
 			Download.DownloadManager dwmgr = new Download.DownloadManager(System.Threading.SynchronizationContext.Current);
 			dwmgr.BlogInfoArrived += Dwmgr_BlogInfoArrived;
-			dwmgr.ArticlesLoadProgressChanged += Dwmgr_ArticlesLoadProgressChanged;
+			dwmgr.ArticlesLoadingOverallProgressChangedStage2 += Dwmgr_ArticlesLoadProgressChanged;
 			dwmgr.ArticlesLoadProgressStepStage1 += Dwmgr_ArticlesLoadProgressStepStage1;
 			dwmgr.ArticlesLoadProgressStepStage2 += Dwmgr_ArticlesLoadProgressStepStage2;
 			dwmgr.Update(blog);

@@ -17,10 +17,10 @@ namespace LJ2Book.Download
 	class DownloadManager
 	{
 		public delegate void OnArticlesLoadProgressChanged(int MaxItems);
-		public event OnArticlesLoadProgressChanged ArticlesLoadProgressChanged;
-		public delegate void OnArticlesLoadProgressStep();
-		public event OnArticlesLoadProgressStep ArticlesLoadProgressStepStage1;
-		public event OnArticlesLoadProgressStep ArticlesLoadProgressStepStage2;
+		public event OnArticlesLoadProgressChanged ArticlesLoadingOverallProgressChangedStage1;
+		public event OnArticlesLoadProgressChanged ArticlesLoadingOverallProgressChangedStage2;
+		public Action ArticlesLoadProgressStepStage1;
+		public Action ArticlesLoadProgressStepStage2;
 		private static Connection cnn;
 		private static object cnnSyncObject = new object();
 		private SynchronizationContext WpfSyncContext;
@@ -29,7 +29,7 @@ namespace LJ2Book.Download
 		public DownloadManager(SynchronizationContext _ctx)
 		{
 			WpfSyncContext = _ctx;
-			semaphore = new Semaphore(0, DOWNLOAD_THREADS);
+			//semaphore = new Semaphore(0, DOWNLOAD_THREADS);
 		}
 		public static bool TryLogin(string _Login, string _encryptedPass)
 		{
@@ -84,10 +84,12 @@ namespace LJ2Book.Download
 					listItemsToSync = Enumerable.Range(1, _blog.LastItemNo).Except(qryArticles.ToArray()).ToList();
 				}
 			}
-			int NumberItemsToLoad = listItemsToSync.Count;
-			if (NumberItemsToLoad == 0)
+			int NumberItemsToCollectInfo = listItemsToSync.Count;
+			if (NumberItemsToCollectInfo == 0)
 			{
 				Debug.WriteLine("Articles to load: nothing");
+				if (ArticlesLoadingOverallProgressChangedStage2 != null)
+					ArticlesLoadingOverallProgressChangedStage2(0);
 				return;
 			}
 			string logString = string.Format("Articles to load: " + string.Join(",", (from i in listItemsToSync select i.ToString()).ToArray()));
@@ -96,50 +98,116 @@ namespace LJ2Book.Download
 			else
 				Debug.WriteLine(logString);
 
-			if (ArticlesLoadProgressChanged != null)
-				ArticlesLoadProgressChanged(NumberItemsToLoad);
+			if (ArticlesLoadingOverallProgressChangedStage1 != null)
+				ArticlesLoadingOverallProgressChangedStage1(NumberItemsToCollectInfo);
 
 			List<DownloadManagerTaskInfo> diList = new List<DownloadManagerTaskInfo>();
+			List<Article> Articles = new List<Article>();
 			foreach (var i in listItemsToSync)
 			{
 				Thread.Sleep(205);
+				Article article = new Article { ArticleNo = i, Anum = 0, Url = string.Empty, RawTitle = string.Empty, RawBody = string.Empty, Tags = string.Empty, Blog = _blog };
 				try
 				{
 					LiveJournalEvent Event = cnn.GetEventByNo(_blog.User.UserName, i);
 					if (Event == null)
 					{
 						Debug.WriteLine(string.Format("Get Event by No: event for {0} is deleted", i));
+						article.Anum = 0;
+						article.State = ArticleState.Removed;
+						article.ArticleDT = DateTime.Now;
 					}
 					else
 					{
 						Debug.WriteLine(string.Format("Get Event by No: event for {0} has URL {1}", i, Event.url));
+
+						article.Anum = Event.anum;
+						article.State = ArticleState.Queued;
+						article.Url = Event.url;
+						article.ArticleDT = Event.eventtime;
+						if (Event.Params.ContainsKey("taglist"))
+							article.Tags = Event.Params["taglist"].Replace(", ", ",");
+
+						diList.Add(new DownloadManagerTaskInfo { article = article, SyncContext = this.WpfSyncContext, blog = _blog });
+					}
+					Articles.Add(article);
+				}
+				catch (FailedToGetEventByNoException e)
+				{
+					Debug.WriteLine(string.Format("Get Event by No: Fail to get event for {0}. Error: {1}", i, e.Message));
+					break;
+				}
+				if (ArticlesLoadProgressStepStage1 != null)
+					ArticlesLoadProgressStepStage1();
+			}
+
+			SaveArticlesToDB(Articles);
+
+			int NumberItemsToDownload = diList.Count;
+			if (ArticlesLoadingOverallProgressChangedStage2 != null)
+				ArticlesLoadingOverallProgressChangedStage2(NumberItemsToDownload);
+
+			semaphore = new Semaphore(0, DOWNLOAD_THREADS);
+			do
+			{
+				int Limit = diList.Count >= DOWNLOAD_THREADS ? DOWNLOAD_THREADS : diList.Count;
+				for (int i = 0; i < Limit; i++)
+				{
+					DownloadManagerTaskInfo dmti = diList[0];
+					ThreadPool.QueueUserWorkItem(DownloadThread, dmti);
+					diList.RemoveAt(0);
+				}
+				semaphore.Release(Limit);
+				Thread.Sleep(100);
+
+				for (int i = 0; i < Limit; i++)
+					semaphore.WaitOne();
+			}
+			while (diList.Count > 0);
+		}
+
+		private void SaveArticlesToDB(List<Article> articles)
+		{
+			lock (App.dbLock)
+			{
+				foreach(var a in articles)
+				try
+				{
+					App.db.Articles.Add(a);
+					App.db.SaveChanges();
+				}
+				catch (System.Data.Entity.Infrastructure.DbUpdateException e)
+				{
+					if (e.InnerException is System.Data.Entity.Core.UpdateException)
+					{
+						System.Data.Entity.Core.UpdateException e2 = (e.InnerException as System.Data.Entity.Core.UpdateException);
+						if (e2.InnerException is System.Data.SQLite.SQLiteException)
+						{
+							System.Data.SQLite.SQLiteException e3 = e2.InnerException as System.Data.SQLite.SQLiteException;
+							if (e3.ResultCode == System.Data.SQLite.SQLiteErrorCode.Constraint)
+							{
+								Debug.WriteLine("Fail to insert empty article No: {0}, but continue.", a.ArticleNo);
+							}
+						}
+					}
+					else
+					{
+						Debug.WriteLine("Fail to insert empty article No: {0}, and rethrow.", a.ArticleNo);
+						throw e;
 					}
 				}
-				catch (FailedToGetEventByNoException)
-				{
-					Debug.WriteLine(string.Format("Get Event by No: Fail to get event for {0}.", i));
-				}
 			}
-			return;
-
-			//DownloadManagerTaskInfo[] DownloadInfos = new DownloadManagerTaskInfo[NumberItemsToLoad];
-			//for (int i = 0; i < NumberItemsToLoad; i++)
-			//	DownloadInfos[i] = new DownloadManagerTaskInfo { Target = _blog.User.UserName, ItemNo = listItemsToSync[i], sc = this.WpfSyncContext, blog = _blog, ShouldProcessPage = false };
-
-			//for (int i = 0; i < NumberItemsToLoad; i++)
-			//	ThreadPool.QueueUserWorkItem(DownloadThread, DownloadInfos[i]);
-
-			//semaphore.Release(DOWNLOAD_THREADS);
 		}
 
 		private class DownloadManagerTaskInfo
 		{
-			public string Target;
-			public int ItemNo;
-			LiveJournalEvent Event;
-			public SynchronizationContext sc;
+			//public string Target;
+			//public int ItemNo;
+			//public LiveJournalEvent Event;
+			public Article article;
+			public SynchronizationContext SyncContext;
 			public Blog blog;
-			public bool ShouldProcessPage;
+			//public bool ShouldProcessPage;
 		}
 		private void DownloadThread(Object _di)
 		{
@@ -149,140 +217,9 @@ namespace LJ2Book.Download
 			semaphore.WaitOne();
 
 			DownloadManagerTaskInfo di = _di as DownloadManagerTaskInfo;
-			Debug.WriteLine("Task started for item No {0}: lock semaphore", di.ItemNo);
+			Debug.WriteLine("Task started for item No {0}: lock semaphore", di.article.ArticleNo);
 
-			LiveJournalEvent ev;
-			try
-			{
-				lock (cnnSyncObject)
-				{
-					ev = cnn.GetEventByNo(di.Target, di.ItemNo);
-				}
-			}
-			catch (FailedToGetEventByNoException)
-			{
-				Debug.WriteLine("Task for item No {0}: release semaphore (fail to get event)", di.ItemNo);
-				semaphore.Release();
-				if (ArticlesLoadProgressStepStage2 != null)
-					ArticlesLoadProgressStepStage2();
-				return;
-			}
-			if (ev == null)
-			{
-				Debug.WriteLine("Thread {0}: Article {1} has been deleted", Thread.CurrentThread.ManagedThreadId, di.ItemNo);
-				Article article = new Article
-				{
-					ArticleNo = di.ItemNo,
-					Anum = 0,
-					State = ArticleState.Removed,
-					Url = string.Empty,
-					ArticleDT = DateTime.Now,
-					RawTitle = string.Empty,
-					RawBody = string.Empty,
-					Tags = string.Empty,
-					Blog = di.blog
-				};
-
-				di.sc.Send(new SendOrPostCallback((o) =>
-				{
-					lock (App.dbLock)
-					{
-						try
-						{
-							App.db.Articles.Add(article);
-							App.db.SaveChanges();
-						}
-						catch (System.Data.Entity.Infrastructure.DbUpdateException e)
-						{
-							if (e.InnerException is System.Data.Entity.Core.UpdateException)
-							{
-								System.Data.Entity.Core.UpdateException e2 = (e.InnerException as System.Data.Entity.Core.UpdateException);
-								if (e2.InnerException is System.Data.SQLite.SQLiteException)
-								{
-									System.Data.SQLite.SQLiteException e3 = e2.InnerException as System.Data.SQLite.SQLiteException;
-									if (e3.ResultCode == System.Data.SQLite.SQLiteErrorCode.Constraint)
-									{
-										Debug.WriteLine("Fail to insert empty article No: {0}. release semaphore", di.ItemNo);
-										semaphore.Release();
-										if (ArticlesLoadProgressStepStage2 != null)
-											ArticlesLoadProgressStepStage2();
-									}
-								}
-							}
-							else
-							{
-								Debug.WriteLine("Task for item No {0}: release semaphore (db update fail)", di.ItemNo);
-								semaphore.Release();
-								if (ArticlesLoadProgressStepStage2 != null)
-									ArticlesLoadProgressStepStage2();
-
-								throw e;
-							}
-						}
-					}
-				}), null);
-			}
-			else
-			{
-				Article article = new Article
-				{
-					ArticleNo = di.ItemNo,
-					Anum = ev.anum,
-					State = ArticleState.Queued,
-					Url = ev.url,
-					ArticleDT = ev.eventtime,
-					RawTitle = string.Empty,
-					RawBody = string.Empty,
-					Tags = ev.Params.ContainsKey("taglist") ? ev.Params["taglist"].Replace(", ", ",") : string.Empty,
-					Blog = di.blog
-				};
-				//ManualResetEvent evt = new ManualResetEvent(false);
-				di.sc.Send(new SendOrPostCallback((o) =>
-				{
-					lock (App.dbLock)
-					{
-						try
-						{
-							App.db.Articles.Add(article);
-							App.db.SaveChanges();
-							//evt.Set();
-							di.ShouldProcessPage = true;
-						}
-						catch (System.Data.Entity.Infrastructure.DbUpdateException e)
-						{
-							if (e.InnerException is System.Data.Entity.Core.UpdateException)
-							{
-								System.Data.Entity.Core.UpdateException e2 = (e.InnerException as System.Data.Entity.Core.UpdateException);
-								if (e2.InnerException is System.Data.SQLite.SQLiteException)
-								{
-									System.Data.SQLite.SQLiteException e3 = e2.InnerException as System.Data.SQLite.SQLiteException;
-									if (e3.ResultCode == System.Data.SQLite.SQLiteErrorCode.Constraint)
-									{
-										Debug.WriteLine("Fail to insert article No: {0}. release semaphore", di.ItemNo);
-										semaphore.Release();
-										if (ArticlesLoadProgressStepStage2 != null)
-											ArticlesLoadProgressStepStage2();
-									}
-								}
-							}
-							else
-							{
-								Debug.WriteLine("Task for item No {0}: release semaphore (db update fail)", di.ItemNo);
-								semaphore.Release();
-								if (ArticlesLoadProgressStepStage2 != null)
-									ArticlesLoadProgressStepStage2();
-
-								throw e;
-							}
-						}
-					}
-				}), null);
-
-				if (di.ShouldProcessPage)
-				{
-					HtmlLoader loaderStage2 = new HtmlLoader(article, di.sc, this);
-				}
-			}
+			HtmlLoader loaderStage2 = new HtmlLoader(di.article, di.SyncContext, this);
 		}
 		public void SaveArticleDetails(Article article, List<Picture> pictures)
 		{

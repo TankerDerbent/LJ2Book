@@ -66,7 +66,7 @@ namespace LJ2Book.FormBrowseBlog
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append("<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<meta charset=\"utf-8\">");
-			sb.Append("</head>\r\n<body>");
+			sb.Append("</head>\r\n<body background='#FFFFFF'>");
 			int LabelNo = 1;
 			//List<string> imagesUrls = new List<string>();
 			_CachedImages = new List<CachedImage>();

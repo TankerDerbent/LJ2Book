@@ -96,7 +96,7 @@ namespace LJ2Book.Download
 
 			DownloadManagerTaskInfo[] DownloadInfos = new DownloadManagerTaskInfo[NumberItemsToLoad];
 			for (int i = 0; i < NumberItemsToLoad; i++)
-				DownloadInfos[i] = new DownloadManagerTaskInfo { Target = _blog.User.UserName, ItemNo = listItemsToSync[i], sc = this.WpfSyncContext, blog = _blog };
+				DownloadInfos[i] = new DownloadManagerTaskInfo { Target = _blog.User.UserName, ItemNo = listItemsToSync[i], sc = this.WpfSyncContext, blog = _blog, ShouldProcessPage = false };
 
 			for (int i = 0; i < NumberItemsToLoad; i++)
 				ThreadPool.QueueUserWorkItem(DownloadThread, DownloadInfos[i]);
@@ -110,6 +110,7 @@ namespace LJ2Book.Download
 			public int ItemNo;
 			public SynchronizationContext sc;
 			public Blog blog;
+			public bool ShouldProcessPage;
 		}
 		private void DownloadThread(Object _di)
 		{
@@ -119,9 +120,7 @@ namespace LJ2Book.Download
 			semaphore.WaitOne();
 
 			DownloadManagerTaskInfo di = _di as DownloadManagerTaskInfo;
-			Debug.WriteLine("Task for item No {0}: lock semaphore", di.ItemNo);
-
-			//Debug.WriteLine("Task {0}: started", di.ItemNo);
+			Debug.WriteLine("Task started for item No {0}: lock semaphore", di.ItemNo);
 
 			LiveJournalEvent ev;
 			try
@@ -129,81 +128,133 @@ namespace LJ2Book.Download
 				lock (cnnSyncObject)
 				{
 					ev = cnn.GetEventByNo(di.Target, di.ItemNo);
-					//Debug.WriteLine("DWM: Task {0}: for target {1} got event {2}, tags '{3}'", di.ItemNo, di.Target, ev.url, ev.Params.ContainsKey("taglist") ? ev.Params["taglist"] : string.Empty);
 				}
+
 			}
-			catch (FailedToGetEventByNoException e)
+			catch (FailedToGetEventByNoException)
 			{
-				//Debug.WriteLine(e.Message);
-				Debug.WriteLine("Thread {0}: Event {1} process fail: '{2}'", Thread.CurrentThread.ManagedThreadId, di.ItemNo, e.Message);
-				//SaveArticleDetails(new Article
-				//{
-				//	ArticleNo = di.ItemNo,
-				//	Anum = -1,
-				//	State = ArticleState.FailedToProcess,
-				//	Url = string.Empty,
-				//	ArticleDT = DateTime.MinValue,
-				//	RawTitle = string.Empty,
-				//	RawBody = string.Empty,
-				//	Tags = string.Empty,
-				//	Blog = di.blog
-				//}, null);
 				Debug.WriteLine("Task for item No {0}: release semaphore (fail to get event)", di.ItemNo);
 				semaphore.Release();
 				if (ArticlesLoadProgressStep != null)
 					ArticlesLoadProgressStep();
 				return;
 			}
-			Article article = new Article
+			if (ev == null)
 			{
-				ArticleNo = di.ItemNo,
-				Anum = ev.anum,
-				State = ArticleState.Queued,
-				Url = ev.url,
-				ArticleDT = ev.eventtime,
-				RawTitle = string.Empty,
-				RawBody = string.Empty,
-				Tags = ev.Params.ContainsKey("taglist") ? ev.Params["taglist"].Replace(", ", ",") : string.Empty,
-				Blog = di.blog
-			};
-			ManualResetEvent evt = new ManualResetEvent(false);
-			di.sc.Post(new SendOrPostCallback((o)=>
-			{
-				lock (App.dbLock)
+				Debug.WriteLine("Thread {0}: Article {1} has been deleted", Thread.CurrentThread.ManagedThreadId, di.ItemNo);
+				Article article = new Article
 				{
-					try
+					ArticleNo = di.ItemNo,
+					Anum = 0,
+					State = ArticleState.Removed,
+					Url = string.Empty,
+					ArticleDT = DateTime.Now,
+					RawTitle = string.Empty,
+					RawBody = string.Empty,
+					Tags = string.Empty,
+					Blog = di.blog
+				};
+
+				di.sc.Send(new SendOrPostCallback((o) =>
+				{
+					lock (App.dbLock)
 					{
-						App.db.Articles.Add(article);
-						App.db.SaveChanges();
-						evt.Set();
-					}
-					catch (System.Data.Entity.Infrastructure.DbUpdateException e)
-					{
-						if (e.InnerException is System.Data.Entity.Core.UpdateException)
+						try
 						{
-							System.Data.Entity.Core.UpdateException e2 = (e.InnerException as System.Data.Entity.Core.UpdateException);
-							if (e2.InnerException is System.Data.SQLite.SQLiteException)
+							App.db.Articles.Add(article);
+							App.db.SaveChanges();
+						}
+						catch (System.Data.Entity.Infrastructure.DbUpdateException e)
+						{
+							if (e.InnerException is System.Data.Entity.Core.UpdateException)
 							{
-								System.Data.SQLite.SQLiteException e3 = e2.InnerException as System.Data.SQLite.SQLiteException;
-								if (e3.ResultCode == System.Data.SQLite.SQLiteErrorCode.Constraint)
+								System.Data.Entity.Core.UpdateException e2 = (e.InnerException as System.Data.Entity.Core.UpdateException);
+								if (e2.InnerException is System.Data.SQLite.SQLiteException)
 								{
-									MessageBox.Show(string.Format("Fail to insert article No: '{0}'", article.ArticleNo.ToString()));
+									System.Data.SQLite.SQLiteException e3 = e2.InnerException as System.Data.SQLite.SQLiteException;
+									if (e3.ResultCode == System.Data.SQLite.SQLiteErrorCode.Constraint)
+									{
+										Debug.WriteLine("Fail to insert empty article No: {0}. release semaphore", di.ItemNo);
+										semaphore.Release();
+										if (ArticlesLoadProgressStep != null)
+											ArticlesLoadProgressStep();
+									}
 								}
 							}
-						}
-						else
-						{
-							Debug.WriteLine("Task for item No {0}: release semaphore (db update fail)", di.ItemNo);
-							semaphore.Release();
-							if (ArticlesLoadProgressStep != null)
-								ArticlesLoadProgressStep();
+							else
+							{
+								Debug.WriteLine("Task for item No {0}: release semaphore (db update fail)", di.ItemNo);
+								semaphore.Release();
+								if (ArticlesLoadProgressStep != null)
+									ArticlesLoadProgressStep();
 
-							throw e;
+								throw e;
+							}
 						}
 					}
+				}), null);
+			}
+			else
+			{
+				Article article = new Article
+				{
+					ArticleNo = di.ItemNo,
+					Anum = ev.anum,
+					State = ArticleState.Queued,
+					Url = ev.url,
+					ArticleDT = ev.eventtime,
+					RawTitle = string.Empty,
+					RawBody = string.Empty,
+					Tags = ev.Params.ContainsKey("taglist") ? ev.Params["taglist"].Replace(", ", ",") : string.Empty,
+					Blog = di.blog
+				};
+				//ManualResetEvent evt = new ManualResetEvent(false);
+				di.sc.Send(new SendOrPostCallback((o) =>
+				{
+					lock (App.dbLock)
+					{
+						try
+						{
+							App.db.Articles.Add(article);
+							App.db.SaveChanges();
+							//evt.Set();
+							di.ShouldProcessPage = true;
+						}
+						catch (System.Data.Entity.Infrastructure.DbUpdateException e)
+						{
+							if (e.InnerException is System.Data.Entity.Core.UpdateException)
+							{
+								System.Data.Entity.Core.UpdateException e2 = (e.InnerException as System.Data.Entity.Core.UpdateException);
+								if (e2.InnerException is System.Data.SQLite.SQLiteException)
+								{
+									System.Data.SQLite.SQLiteException e3 = e2.InnerException as System.Data.SQLite.SQLiteException;
+									if (e3.ResultCode == System.Data.SQLite.SQLiteErrorCode.Constraint)
+									{
+										Debug.WriteLine("Fail to insert article No: {0}. release semaphore", di.ItemNo);
+										semaphore.Release();
+										if (ArticlesLoadProgressStep != null)
+											ArticlesLoadProgressStep();
+									}
+								}
+							}
+							else
+							{
+								Debug.WriteLine("Task for item No {0}: release semaphore (db update fail)", di.ItemNo);
+								semaphore.Release();
+								if (ArticlesLoadProgressStep != null)
+									ArticlesLoadProgressStep();
+
+								throw e;
+							}
+						}
+					}
+				}), null);
+
+				if (di.ShouldProcessPage)
+				{
+					HtmlLoader loaderStage2 = new HtmlLoader(article, di.sc, this);
 				}
-			}), null);
-			HtmlLoader loaderStage2 = new HtmlLoader(article, di.sc, evt, this);
+			}
 		}
 		public void SaveArticleDetails(Article article, List<Picture> pictures)
 		{
@@ -232,13 +283,13 @@ namespace LJ2Book.Download
 		Article Article;
 		CefSharp.OffScreen.ChromiumWebBrowser browser;
 		SynchronizationContext syncContext;
-		ManualResetEvent evt;
+		//ManualResetEvent evt;
 		DownloadManager downloadManager;
-		public HtmlLoader(Article _article, SynchronizationContext _syncContext, ManualResetEvent manualResetEvent, DownloadManager _downloadManager)
+		public HtmlLoader(Article _article, SynchronizationContext _syncContext, DownloadManager _downloadManager)
 		{
 			this.Article = _article;
 			syncContext = _syncContext;
-			evt = manualResetEvent;
+			//evt = manualResetEvent;
 			downloadManager = _downloadManager;
 			browser = new CefSharp.OffScreen.ChromiumWebBrowser();
 			browser.BrowserInitialized += Browser_BrowserInitialized;
@@ -414,7 +465,7 @@ namespace LJ2Book.Download
 			browser.BrowserInitialized -= Browser_BrowserInitialized;
 			browser.FrameLoadEnd -= Browser_FrameLoadEnd;
 
-			evt.WaitOne();
+			//evt.WaitOne();
 
 			Debug.WriteLine("Thread {0}: Event processed succeed: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
 			syncContext.Post(new SendOrPostCallback((o) =>

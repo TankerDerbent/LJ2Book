@@ -113,8 +113,12 @@ namespace LJ2Book.LiveJournalAPI
 			List<LiveJournalEvent> events;
 			rp.TryParseAsGeteventLastnResult(out events);
 			if (events != null)
+			{
+				if (events.Count == 0)
+					return null;
 				if (events.Count == 1)
 					return events[0];
+			}
 
 			throw new FailedToGetEventByNoException(_Target, _EventNo, string.Format("events.Count = {0}", events.Count));
 		}

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LJ2Book.DataBase
 {
-	public enum ArticleState { Unknown, Queued, Ready, FailedToProcess }
+	public enum ArticleState { Unknown, Queued, Ready, FailedToProcess, Removed }
 	public class Article
 	{
 		[Key]

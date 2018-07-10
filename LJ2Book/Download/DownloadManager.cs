@@ -19,7 +19,8 @@ namespace LJ2Book.Download
 		public delegate void OnArticlesLoadProgressChanged(int MaxItems);
 		public event OnArticlesLoadProgressChanged ArticlesLoadProgressChanged;
 		public delegate void OnArticlesLoadProgressStep();
-		public event OnArticlesLoadProgressStep ArticlesLoadProgressStep;
+		public event OnArticlesLoadProgressStep ArticlesLoadProgressStepStage1;
+		public event OnArticlesLoadProgressStep ArticlesLoadProgressStepStage2;
 		private static Connection cnn;
 		private static object cnnSyncObject = new object();
 		private SynchronizationContext WpfSyncContext;
@@ -98,20 +99,44 @@ namespace LJ2Book.Download
 			if (ArticlesLoadProgressChanged != null)
 				ArticlesLoadProgressChanged(NumberItemsToLoad);
 
-			DownloadManagerTaskInfo[] DownloadInfos = new DownloadManagerTaskInfo[NumberItemsToLoad];
-			for (int i = 0; i < NumberItemsToLoad; i++)
-				DownloadInfos[i] = new DownloadManagerTaskInfo { Target = _blog.User.UserName, ItemNo = listItemsToSync[i], sc = this.WpfSyncContext, blog = _blog, ShouldProcessPage = false };
+			List<DownloadManagerTaskInfo> diList = new List<DownloadManagerTaskInfo>();
+			foreach (var i in listItemsToSync)
+			{
+				Thread.Sleep(205);
+				try
+				{
+					LiveJournalEvent Event = cnn.GetEventByNo(_blog.User.UserName, i);
+					if (Event == null)
+					{
+						Debug.WriteLine(string.Format("Get Event by No: event for {0} is deleted", i));
+					}
+					else
+					{
+						Debug.WriteLine(string.Format("Get Event by No: event for {0} has URL {1}", i, Event.url));
+					}
+				}
+				catch (FailedToGetEventByNoException)
+				{
+					Debug.WriteLine(string.Format("Get Event by No: Fail to get event for {0}.", i));
+				}
+			}
+			return;
 
-			for (int i = 0; i < NumberItemsToLoad; i++)
-				ThreadPool.QueueUserWorkItem(DownloadThread, DownloadInfos[i]);
+			//DownloadManagerTaskInfo[] DownloadInfos = new DownloadManagerTaskInfo[NumberItemsToLoad];
+			//for (int i = 0; i < NumberItemsToLoad; i++)
+			//	DownloadInfos[i] = new DownloadManagerTaskInfo { Target = _blog.User.UserName, ItemNo = listItemsToSync[i], sc = this.WpfSyncContext, blog = _blog, ShouldProcessPage = false };
 
-			semaphore.Release(DOWNLOAD_THREADS);
+			//for (int i = 0; i < NumberItemsToLoad; i++)
+			//	ThreadPool.QueueUserWorkItem(DownloadThread, DownloadInfos[i]);
+
+			//semaphore.Release(DOWNLOAD_THREADS);
 		}
 
 		private class DownloadManagerTaskInfo
 		{
 			public string Target;
 			public int ItemNo;
+			LiveJournalEvent Event;
 			public SynchronizationContext sc;
 			public Blog blog;
 			public bool ShouldProcessPage;
@@ -133,14 +158,13 @@ namespace LJ2Book.Download
 				{
 					ev = cnn.GetEventByNo(di.Target, di.ItemNo);
 				}
-
 			}
 			catch (FailedToGetEventByNoException)
 			{
 				Debug.WriteLine("Task for item No {0}: release semaphore (fail to get event)", di.ItemNo);
 				semaphore.Release();
-				if (ArticlesLoadProgressStep != null)
-					ArticlesLoadProgressStep();
+				if (ArticlesLoadProgressStepStage2 != null)
+					ArticlesLoadProgressStepStage2();
 				return;
 			}
 			if (ev == null)
@@ -180,8 +204,8 @@ namespace LJ2Book.Download
 									{
 										Debug.WriteLine("Fail to insert empty article No: {0}. release semaphore", di.ItemNo);
 										semaphore.Release();
-										if (ArticlesLoadProgressStep != null)
-											ArticlesLoadProgressStep();
+										if (ArticlesLoadProgressStepStage2 != null)
+											ArticlesLoadProgressStepStage2();
 									}
 								}
 							}
@@ -189,8 +213,8 @@ namespace LJ2Book.Download
 							{
 								Debug.WriteLine("Task for item No {0}: release semaphore (db update fail)", di.ItemNo);
 								semaphore.Release();
-								if (ArticlesLoadProgressStep != null)
-									ArticlesLoadProgressStep();
+								if (ArticlesLoadProgressStepStage2 != null)
+									ArticlesLoadProgressStepStage2();
 
 								throw e;
 							}
@@ -236,8 +260,8 @@ namespace LJ2Book.Download
 									{
 										Debug.WriteLine("Fail to insert article No: {0}. release semaphore", di.ItemNo);
 										semaphore.Release();
-										if (ArticlesLoadProgressStep != null)
-											ArticlesLoadProgressStep();
+										if (ArticlesLoadProgressStepStage2 != null)
+											ArticlesLoadProgressStepStage2();
 									}
 								}
 							}
@@ -245,8 +269,8 @@ namespace LJ2Book.Download
 							{
 								Debug.WriteLine("Task for item No {0}: release semaphore (db update fail)", di.ItemNo);
 								semaphore.Release();
-								if (ArticlesLoadProgressStep != null)
-									ArticlesLoadProgressStep();
+								if (ArticlesLoadProgressStepStage2 != null)
+									ArticlesLoadProgressStepStage2();
 
 								throw e;
 							}
@@ -274,8 +298,8 @@ namespace LJ2Book.Download
 						context.Pictures.Add(p);
 					context.SaveChanges();
 				}
-				if (ArticlesLoadProgressStep != null)
-					ArticlesLoadProgressStep();
+				if (ArticlesLoadProgressStepStage2 != null)
+					ArticlesLoadProgressStepStage2();
 			}
 		}
 	}

@@ -110,7 +110,8 @@
 							</StackPanel>
 							<StackPanel Grid.Column="3" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding UpdateProgressVisibility}">
 								<TextBlock Text="Update Progress:" FontSize="10"/>
-								<ProgressBar Maximum="{Binding ProgressMax}" Value="{Binding ProgressValue}" MaxWidth="50" MaxHeight="15" />
+								<ProgressBar Maximum="{Binding ProgressMax}" Value="{Binding ProgressValueStage1}" MaxHeight="25" HorizontalAlignment="Stretch" Margin="3" />
+								<ProgressBar Maximum="{Binding ProgressMax}" Value="{Binding ProgressValueStage2}" MaxHeight="25" HorizontalAlignment="Stretch" Margin="3"/>
 								<TextBlock Text="{Binding RemainedTimeText}" FontSize="10" />
 								<TextBlock Text="{Binding ReadyItemsText}" FontSize="10" />
 							</StackPanel>

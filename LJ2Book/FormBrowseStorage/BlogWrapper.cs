@@ -30,13 +30,15 @@ namespace LJ2Book.FormBrowseStorage
 		public Visibility UpdateProgressVisibility { get { return IsUpdating ? Visibility.Visible : Visibility.Collapsed; } }
 		public bool CanRead { get => blog.LastSync != DateTime.MinValue; }
 		public int ProgressMax { get; set; }
-		public int ProgressValue { get; set; }
+		public int ProgressValueStage1 { get; set; }
+		public int ProgressValueStage2 { get; set; }
 		private DateTime _DownloadStarted = DateTime.MinValue;
 
 		private BlogWrapper()
 		{
 			ProgressMax = 10;
-			ProgressValue = 3;
+			ProgressValueStage1 = 3;
+			ProgressValueStage2 = 3;
 		}
 		public static BlogWrapper FromBlog(Blog _blog)
 		{
@@ -49,19 +51,34 @@ namespace LJ2Book.FormBrowseStorage
 			Download.DownloadManager dwmgr = new Download.DownloadManager(System.Threading.SynchronizationContext.Current);
 			dwmgr.BlogInfoArrived += Dwmgr_BlogInfoArrived;
 			dwmgr.ArticlesLoadProgressChanged += Dwmgr_ArticlesLoadProgressChanged;
-			dwmgr.ArticlesLoadProgressStep += Dwmgr_ArticlesLoadProgressStep;
+			dwmgr.ArticlesLoadProgressStepStage1 += Dwmgr_ArticlesLoadProgressStepStage1;
+			dwmgr.ArticlesLoadProgressStepStage2 += Dwmgr_ArticlesLoadProgressStepStage2;
 			dwmgr.Update(blog);
 		}
+
+		private void Dwmgr_ArticlesLoadProgressStepStage1()
+		{
+			ProgressValueStage1 += 1;
+
+			if (ProgressValueStage1 < ProgressMax)
+			{
+				OnPropertyChanged(() => ProgressValueStage1);
+				//OnPropertyChanged(() => RemainedTimeText);
+				//OnPropertyChanged(() => ReadyItemsText);
+				return;
+			}
+		}
+
 		public string RemainedTimeText
 		{
 			get
 			{
 				if (IsUpdating)
 				{
-					if (ProgressValue == 0)
+					if (ProgressValueStage2 == 0)
 						return string.Empty;
 					else
-						return TimeSpan.FromTicks((DateTime.Now - _DownloadStarted).Ticks * ProgressMax / ProgressValue).ToString(@"hh\:mm\:ss");
+						return TimeSpan.FromTicks((DateTime.Now - _DownloadStarted).Ticks * ProgressMax / ProgressValueStage2).ToString(@"hh\:mm\:ss");
 				}
 				else
 					return string.Empty;
@@ -73,21 +90,19 @@ namespace LJ2Book.FormBrowseStorage
 			{
 				if (IsUpdating)
 				{
-					return string.Format("{0} of {1} ready", ProgressValue, ProgressMax);
+					return string.Format("{0} of {1} ready", ProgressValueStage2, ProgressMax);
 				}
 				else
 					return string.Empty;
 			}
 		}
-		private void Dwmgr_ArticlesLoadProgressStep()
+		private void Dwmgr_ArticlesLoadProgressStepStage2()
 		{
-			ProgressValue += 1;
-			//TimeSpan ts = DateTime.Now - _DownloadStarted;
-			//TimeSpan remainedTs = TimeSpan.FromTicks(ts.Ticks * ProgressMax / ProgressValue);
+			ProgressValueStage2 += 1;
 			
-			if (ProgressValue < ProgressMax)
+			if (ProgressValueStage2 < ProgressMax)
 			{
-				OnPropertyChanged(() => ProgressValue);
+				OnPropertyChanged(() => ProgressValueStage2);
 				OnPropertyChanged(() => RemainedTimeText);
 				OnPropertyChanged(() => ReadyItemsText);
 				return;
@@ -98,9 +113,11 @@ namespace LJ2Book.FormBrowseStorage
 		private void Dwmgr_ArticlesLoadProgressChanged(int MaxItems)
 		{
 			ProgressMax = MaxItems;
-			ProgressValue = 0;
+			ProgressValueStage1 = 0;
+			ProgressValueStage2 = 0;
 			OnPropertyChanged(() => ProgressMax);
-			OnPropertyChanged(() => ProgressValue);
+			OnPropertyChanged(() => ProgressValueStage1);
+			OnPropertyChanged(() => ProgressValueStage2);
 			OnPropertyChanged(() => RemainedTimeText);
 			OnPropertyChanged(() => ReadyItemsText);
 			IsUpdating = true;

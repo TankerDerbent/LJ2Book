@@ -89,7 +89,11 @@ namespace LJ2Book.Download
 				Debug.WriteLine("Articles to load: nothing");
 				return;
 			}
-			Debug.WriteLine("Articles to load: " + string.Join(",", (from i in listItemsToSync select i.ToString()).ToArray()));
+			string logString = string.Format("Articles to load: " + string.Join(",", (from i in listItemsToSync select i.ToString()).ToArray()));
+			if (logString.Length > 150)
+				Debug.WriteLine(logString.Substring(0, 130) + "...<skipped>..." + logString.Substring(logString.Length - 15, 15));
+			else
+				Debug.WriteLine(logString);
 
 			if (ArticlesLoadProgressChanged != null)
 				ArticlesLoadProgressChanged(NumberItemsToLoad);
@@ -258,7 +262,6 @@ namespace LJ2Book.Download
 		}
 		public void SaveArticleDetails(Article article, List<Picture> pictures)
 		{
-			Debug.WriteLine("Task for item No {0}: release semaphore, saving", article.ArticleNo);
 			semaphore.Release();
 			lock (App.dbLock)
 			{
@@ -273,7 +276,6 @@ namespace LJ2Book.Download
 				}
 				if (ArticlesLoadProgressStep != null)
 					ArticlesLoadProgressStep();
-				//Debug.WriteLine("DWM: Task '{0}' url '{1}',  details saved to DB, semaphore released", article.ArticleNo, article.Url);
 			}
 		}
 	}
@@ -287,16 +289,18 @@ namespace LJ2Book.Download
 		DownloadManager downloadManager;
 		public HtmlLoader(Article _article, SynchronizationContext _syncContext, DownloadManager _downloadManager)
 		{
-			this.Article = _article;
+			Article = _article;
 			syncContext = _syncContext;
-			//evt = manualResetEvent;
 			downloadManager = _downloadManager;
 			browser = new CefSharp.OffScreen.ChromiumWebBrowser();
 			browser.BrowserInitialized += Browser_BrowserInitialized;
 			browser.FrameLoadEnd += Browser_FrameLoadEnd;
 		}
-		private string[] Images;
-
+		private void Browser_BrowserInitialized(object sender, EventArgs e)
+		{
+			Debug.WriteLine("Thread {0}: Start process event '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
+			browser.Load(Article.Url);
+		}
 		private void Browser_FrameLoadEnd(object sender, CefSharp.FrameLoadEndEventArgs e)
 		{
 			if (e.Url.StartsWith("https://www.livejournal.com/login.bml"))
@@ -317,8 +321,8 @@ namespace LJ2Book.Download
 					TagName = "entry-title";
 					break;
 				default:
-					SavePageToDB(false);
-					break;
+					ExtractArticleBody(1);
+					return;
 			}
 
 			string script = string.Format("(function() {{ var x = document.getElementsByClassName('{0}'); return x.length > 0 ? x[0].innerHTML : '';}} )();", TagName);
@@ -351,7 +355,7 @@ namespace LJ2Book.Download
 					break;
 				default:
 					SavePageToDB(false);
-					break;
+					return;
 			}
 
 			string script = string.Format("(function() {{ var x = document.getElementsByClassName('{0}'); return x.length > 0 ? x[0].innerHTML : '';}} )();", TagName);
@@ -365,17 +369,30 @@ namespace LJ2Book.Download
 					if (Article.RawBody.Length == 0)
 						ExtractArticleBody(tagNo + 1);
 					else
-						ExtractImageList();
+						ExtractImageList(1);
 				}
 				else
 					SavePageToDB(false);
 			});
 		}
-		private async void ExtractImageList()
+		private string[] Images;
+		private async void ExtractImageList(int tagNo)
 		{
-			string script = "(function() {{ var imgs = document.getElementsByClassName('aentry-post__text')[0].getElementsByTagName('img'); var sImgs = '&'; for (var i = 0; i < imgs.length; i++) { sImgs += (imgs[i].src + '&');} return sImgs;}} )();";
-			if (Article.RawTitle.Length < 1)
-				script = script.Replace("aentry-post__text", "b-singlepost-body");
+			string TagName = string.Empty;
+			switch (tagNo)
+			{
+				case 1:
+					TagName = "aentry-post__text";
+					break;
+				case 2:
+					TagName = "b-singlepost-body";
+					break;
+				default:
+					SavePageToDB();
+					return;
+			}
+
+			string script = string.Format("(function() {{ var imgs = document.getElementsByClassName('{0}')[0].getElementsByTagName('img'); var sImgs = '&'; for (var i = 0; i < imgs.length; i++) {{ sImgs += (imgs[i].src + '&');}} return sImgs;}} )();", TagName);
 
 			var task = browser.EvaluateScriptAsync(script);
 			await task.ContinueWith(t =>
@@ -392,8 +409,10 @@ namespace LJ2Book.Download
 								result.Add(s);
 						Images = result.ToArray();
 						string resultStr = string.Join("\r\n", EvaluateJavaScriptResult.ToString().Split('&'));
+						DownloadPictures();
 					}
-					DownloadPictures();
+					else
+						ExtractImageList(tagNo + 1);
 				}
 				else
 					SavePageToDB(false);
@@ -465,19 +484,12 @@ namespace LJ2Book.Download
 			browser.BrowserInitialized -= Browser_BrowserInitialized;
 			browser.FrameLoadEnd -= Browser_FrameLoadEnd;
 
-			//evt.WaitOne();
-
-			Debug.WriteLine("Thread {0}: Event processed succeed: '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
+			Debug.WriteLine(string.Format("Thread {0}: SavePageToDB: succeed = {1}, url = '{2}'", Thread.CurrentThread.ManagedThreadId, Success.ToString(), this.Article.Url));
 			syncContext.Post(new SendOrPostCallback((o) =>
 			{
 				Article.State = Success ? ArticleState.Ready : ArticleState.FailedToProcess;
 				downloadManager.SaveArticleDetails(Article, Pictures);
 			}), null);
-		}
-		private void Browser_BrowserInitialized(object sender, EventArgs e)
-		{
-			Debug.WriteLine("Thread {0}: Start process event '{1}'", Thread.CurrentThread.ManagedThreadId, this.Article.Url);
-			browser.Load(Article.Url);
 		}
 	}
 }

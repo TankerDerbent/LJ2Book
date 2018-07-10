@@ -171,7 +171,7 @@ namespace LJ2Book.FormBrowseBlog
 		}
 
 		private List<Article> _RawArticles;
-		private bool _doNotShowHiddenArticles;
+		private bool _doNotShowHiddenArticles = true;
 
 		public List<ArticleWrapper> Articles { get; internal set; }
 		public bool DoNotShowHiddenArticles { get { return _doNotShowHiddenArticles; } set { _doNotShowHiddenArticles = value; FilterChanged(); } }

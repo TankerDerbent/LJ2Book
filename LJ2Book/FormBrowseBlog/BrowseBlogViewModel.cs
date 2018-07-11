@@ -101,6 +101,7 @@ namespace LJ2Book.FormBrowseBlog
 					}
 				}
 			}
+			sb.Append("<script type=\"text/javascript\">var ljsales = document.getElementsByClassName('ljsale'); for (var i = 0; i < ljsales.length; i++) ljsales[i].parentNode.removeChild(ljsales[i]);</script>");
 			sb.Append("\r\n</body>\r\n</html>");
 			_TextToShow = sb.ToString();
 		}

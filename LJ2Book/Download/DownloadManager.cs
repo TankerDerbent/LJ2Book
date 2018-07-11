@@ -48,6 +48,12 @@ namespace LJ2Book.Download
 			lock (cnnSyncObject)
 				LastEventNo = cnn.GetLastEventNo(_blog.User.UserName);
 
+			if (LastEventNo < 0)
+			{
+				MessageBox.Show("Some error, possible client locked");
+				return;
+			}
+
 			Blog blog;
 			lock (App.dbLock)
 			{
@@ -131,11 +137,10 @@ namespace LJ2Book.Download
 
 						diList.Add(new DownloadManagerTaskInfo { article = article, SyncContext = this.WpfSyncContext });
 						n += 1;
-
-						if (n > 20)
-							break;
 					}
 					Articles.Add(article);
+					if (n > 20)
+						break;
 				}
 				catch (FailedToGetEventByNoException e)
 				{

@@ -9,7 +9,7 @@ namespace LJ2Book.DataBase
 	{
 		[Key]
 		public int ArticleID { get; set; }
-		[Index("IX_UniqueArticle", IsUnique = true)]
+		[Index("IX_UniqueArticle", 1)]
 		public int ArticleNo { get; set; }
 		public int Anum { get; set; }
 		public ArticleState State { get; set; }
@@ -18,7 +18,7 @@ namespace LJ2Book.DataBase
 		public string RawTitle { get; set; }
 		public string RawBody { get; set; }
 		public string Tags { get; set; }
-		[Index("IX_UniqueArticle", IsUnique = true)]
+		[Index("IX_UniqueArticle", 2, IsUnique = true)]
 		public virtual Blog Blog { get; set; }
 	}
 }

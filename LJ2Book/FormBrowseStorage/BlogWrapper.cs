@@ -1,6 +1,7 @@
 ﻿using LJ2Book.DataBase;
 using SimplesNet;
 using System;
+using System.Text;
 using System.Windows;
 
 namespace LJ2Book.FormBrowseStorage
@@ -9,36 +10,47 @@ namespace LJ2Book.FormBrowseStorage
 	{
 		public Blog blog { get; internal set; }
 		public string BlogNameToShow { get => blog.User.UserName.ToUpper(); }
-		public string KindOfSynchronizationText { get => blog.KindOfSynchronization == KindOfSynchronization.Auto ? "Auto" : "Manual"; }
-		public string LastUpdateAsText { get => blog.LastSync == DateTime.MinValue ? "Never" : blog.LastSync.ToString(); }
-		public string LastItemNoText { get => blog.LastItemNo < 1 ? "Unknown" : blog.LastItemNo.ToString(); }
-		private bool _IsUpdating = false;
-		public bool IsUpdating
+		public string LastUpdateAndArticlesCountAsText
 		{
 			get
 			{
-				return _IsUpdating;
-			}
-			set
-			{
-				_IsUpdating = value;
-				OnPropertyChanged(() => BlogStatusVisibility);
-				OnPropertyChanged(() => UpdateProgressVisibility);
+				StringBuilder result = new StringBuilder();
+				result.Append(blog.KindOfSynchronization == KindOfSynchronization.Auto ? "Auto update" : "Manual update");
+				result.Append(", ");
+				if (blog.LastSync == DateTime.MinValue)
+				{
+					result.Append("not updated yet");
+				}
+				else
+				{
+					result.Append("last update ");
+					DateTime now = DateTime.Now;
+					if (now.Year == blog.LastSync.Year)
+					{
+						if (now.Month == blog.LastSync.Month && now.Day == blog.LastSync.Day)
+							result.Append(blog.LastSync.ToString("HH:mm"));
+						else
+							result.Append(blog.LastSync.ToString("m"));
+					}
+					else
+						result.Append(blog.LastSync.ToString("d"));
+					result.Append(", ");
+					result.Append(blog.LastItemNo);
+					result.Append(" articles");
+				}
+
+				return result.ToString();
 			}
 		}
-		public Visibility BlogStatusVisibility { get { return IsUpdating ? Visibility.Collapsed : Visibility.Visible; } }
-		public Visibility UpdateProgressVisibility { get { return IsUpdating ? Visibility.Visible : Visibility.Collapsed; } }
 		public bool CanRead { get => blog.LastSync != DateTime.MinValue; }
-		public int ProgressMax { get; set; }
-		public int ProgressValueStage1 { get; set; }
-		public int ProgressValueStage2 { get; set; }
+		public int CurrentStageProgressMax { get; set; }
+		public int CurrentStageProgressValue { get; set; }
 		private DateTime _DownloadStarted = DateTime.MinValue;
 
 		private BlogWrapper()
 		{
-			ProgressMax = 10;
-			ProgressValueStage1 = 3;
-			ProgressValueStage2 = 3;
+			CurrentStageProgressMax = 1;
+			CurrentStageProgressValue = 0;
 		}
 		public static BlogWrapper FromBlog(Blog _blog)
 		{
@@ -48,93 +60,109 @@ namespace LJ2Book.FormBrowseStorage
 		public void Update()
 		{
 			_DownloadStarted = DateTime.Now;
-			Download.DownloadManager dwmgr = new Download.DownloadManager(System.Threading.SynchronizationContext.Current);
-			dwmgr.BlogInfoArrived += Dwmgr_BlogInfoArrived;
-			dwmgr.ArticlesLoadingOverallProgressChangedStage2 += Dwmgr_ArticlesLoadProgressChanged;
-			dwmgr.ArticlesLoadProgressStepStage1 += Dwmgr_ArticlesLoadProgressStepStage1;
-			dwmgr.ArticlesLoadProgressStepStage2 += Dwmgr_ArticlesLoadProgressStepStage2;
-			dwmgr.Update(blog);
+			Download.DownloadManager dwmgr = Download.DownloadManager.Instance;
+			var task = new Download.DownloadManager.BlogSynchronizationTask(System.Threading.SynchronizationContext.Current, blog);
+			task.BlogSummaryChanged += Dwmgr_BlogInfoArrived;
+			task.OverallProgressChangedStage1 += OnOverallProgressChangedStage1;
+			task.OverallProgressChangedStage2 += OnOverallProgressChangedStage2;
+			task.StepProgressStage1 += OnStepProgressStage1;
+			task.StepProgressStage2 += OnStepProgressStage2;
+			task.SynchronizationEnded += OnSynchronizationEnded;
+			Stage = 1;
+			dwmgr.AddSyncTask(task);
 		}
-
-		private void Dwmgr_ArticlesLoadProgressStepStage1()
-		{
-			ProgressValueStage1 += 1;
-
-			if (ProgressValueStage1 < ProgressMax)
+		private int _Stage = 0;
+		private int Stage {
+			get => _Stage;
+			set
 			{
-				OnPropertyChanged(() => ProgressValueStage1);
-				//OnPropertyChanged(() => RemainedTimeText);
-				//OnPropertyChanged(() => ReadyItemsText);
-				return;
+				_Stage = value;
+				OnPropertyChanged(() => DownloadProgressVisibility);
+				OnPropertyChanged(() => DownloadStageDesc);
+				OnPropertyChanged(() => IsIndeterminate);
+				OnPropertyChanged(() => CurrentStageProgressValue);
+				OnPropertyChanged(() => CurrentStageProgressMax);
+				OnPropertyChanged(() => CurrentStageProgressValue);
 			}
 		}
-
-		public string RemainedTimeText
+		public Visibility DownloadProgressVisibility { get => Stage > 0 ? Visibility.Visible : Visibility.Collapsed; }
+		public bool IsIndeterminate { get => Stage < 2; }
+		public string DownloadStageDesc
 		{
 			get
 			{
-				if (IsUpdating)
+				switch (_Stage)
 				{
-					if (ProgressValueStage2 == 0)
-						return string.Empty;
-					else
-						return TimeSpan.FromTicks((DateTime.Now - _DownloadStarted).Ticks * ProgressMax / ProgressValueStage2).ToString(@"hh\:mm\:ss");
+					case 1: return "Gathering blog general info...";
+					case 2: return "Stage 1: listing articles..";
+					case 3: return "Stage 1: downloading articles..";
 				}
-				else
-					return string.Empty;
+				return string.Empty;
 			}
 		}
-		public string ReadyItemsText
+		private void OnSynchronizationEnded()
 		{
-			get
-			{
-				if (IsUpdating)
-				{
-					return string.Format("{0} of {1} ready", ProgressValueStage2, ProgressMax);
-				}
-				else
-					return string.Empty;
-			}
+			Stage = 0;
 		}
-		private void Dwmgr_ArticlesLoadProgressStepStage2()
+		private void OnOverallProgressChangedStage1(int MaxItems)
 		{
-			ProgressValueStage2 += 1;
-			
-			if (ProgressValueStage2 < ProgressMax)
-			{
-				OnPropertyChanged(() => ProgressValueStage2);
-				OnPropertyChanged(() => RemainedTimeText);
-				OnPropertyChanged(() => ReadyItemsText);
-				return;
-			}
-			IsUpdating = false;
+			CurrentStageProgressMax = MaxItems;
+			CurrentStageProgressValue = 0;
+			Stage = 1;
+		}
+		private void OnStepProgressStage1()
+		{
+			CurrentStageProgressValue += 1;
+			OnPropertyChanged(() => CurrentStageProgressValue);
+		}
+		private void OnOverallProgressChangedStage2(int MaxItems)
+		{
+			CurrentStageProgressMax = MaxItems;
+			CurrentStageProgressValue = 0;
+			Stage = 2;
+		}
+		private void OnStepProgressStage2()
+		{
+			CurrentStageProgressValue += 1;
+			OnPropertyChanged(() => CurrentStageProgressValue);
 		}
 
-		private void Dwmgr_ArticlesLoadProgressChanged(int MaxItems)
-		{
-			ProgressMax = MaxItems;
-			ProgressValueStage1 = 0;
-			ProgressValueStage2 = 0;
-			OnPropertyChanged(() => ProgressMax);
-			OnPropertyChanged(() => ProgressValueStage1);
-			OnPropertyChanged(() => ProgressValueStage2);
-			OnPropertyChanged(() => RemainedTimeText);
-			OnPropertyChanged(() => ReadyItemsText);
-			IsUpdating = true;
-		}
+		//public string RemainedTimeText
+		//{
+		//	get
+		//	{
+		//		if (IsUpdating)
+		//		{
+		//			if (ProgressValueStage2 == 0)
+		//				return string.Empty;
+		//			else
+		//				return TimeSpan.FromTicks((DateTime.Now - _DownloadStarted).Ticks * ProgressMax2 / ProgressValueStage2).ToString(@"hh\:mm\:ss");
+		//		}
+		//		else
+		//			return string.Empty;
+		//	}
+		//}
+		//public string ReadyItemsText
+		//{
+		//	get
+		//	{
+		//		if (IsUpdating)
+		//		{
+		//			return string.Format("{0} of {1} ready", ProgressValueStage2, ProgressMax2);
+		//		}
+		//		else
+		//			return string.Empty;
+		//	}
+		//}
 
-		private void Dwmgr_BlogInfoArrived(int lastItemNo, DateTime dateLastSync)
+		private void Dwmgr_BlogInfoArrived()
 		{
-			OnPropertyChanged(() => LastItemNoText);
-			OnPropertyChanged(() => LastUpdateAsText);
+			OnPropertyChanged(() => LastUpdateAndArticlesCountAsText);
 		}
 
 		internal void Refresh()
 		{
-			OnPropertyChanged(() => LastItemNoText);
-			OnPropertyChanged(() => LastUpdateAsText);
-			OnPropertyChanged(() => BlogStatusVisibility);
-			OnPropertyChanged(() => UpdateProgressVisibility);
+			OnPropertyChanged(() => LastUpdateAndArticlesCountAsText);
 		}
 	}
 }

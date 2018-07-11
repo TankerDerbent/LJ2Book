@@ -184,7 +184,7 @@
 					<ControlTemplate>
 						<Canvas Opacity="0.5" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Background="{StaticResource TransparentBrush}">
 							<Polygon Points="18,12 26,12 26,20 18,20" Stroke="White" StrokeThickness="1" />
-							<Polyline Points="20,12 20,10 28,10 28,18, 26,18" Stroke="White" StrokeThickness="1" />
+							<Polyline Points="20,12 20,10 28,10 28,18 26,18" Stroke="White" StrokeThickness="1" />
 						</Canvas>
 					</ControlTemplate>
 				</Setter.Value>
@@ -196,7 +196,7 @@
 							<ControlTemplate>
 								<Canvas Opacity="1" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Background="{StaticResource HoverWhiteBrush}">
 									<Polygon Points="18,12 26,12 26,20 18,20" Stroke="White" StrokeThickness="1" />
-									<Polyline Points="20,12 20,10 28,10 28,18, 26,18" Stroke="White" StrokeThickness="1" />
+									<Polyline Points="20,12 20,10 28,10 28,18 26,18" Stroke="White" StrokeThickness="1" />
 								</Canvas>
 							</ControlTemplate>
 						</Setter.Value>
@@ -208,7 +208,7 @@
 							<ControlTemplate>
 								<Canvas Opacity="1" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Background="{StaticResource PressWhiteBrush}">
 									<Polygon Points="18,12 26,12 26,20 18,20" Stroke="White" StrokeThickness="1" />
-									<Polyline Points="20,12 20,10 28,10 28,18, 26,18" Stroke="White" StrokeThickness="1" />
+									<Polyline Points="20,12 20,10 28,10 28,18 26,18" Stroke="White" StrokeThickness="1" />
 								</Canvas>
 							</ControlTemplate>
 						</Setter.Value>

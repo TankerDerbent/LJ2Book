@@ -43,10 +43,7 @@ namespace LJ2Book.FormBrowseBlog
 			{
 				return new BaseCommand(() =>
 				{
-					if (FormMode == EFormMode.Content)
-						SwitchToContent();
-					else
-						SwitchToText();
+					FormMode = FormMode == EFormMode.Content ? EFormMode.Text : EFormMode.Content;
 				});
 			}
 		}
@@ -113,9 +110,8 @@ namespace LJ2Book.FormBrowseBlog
 			ctrl.browser.Visibility = Visibility.Hidden;
 		}
 
-		private enum EFormMode { Content, Text }
-		private EFormMode FormMode { get => _formMode; set { _formMode = value; OnPropertyChanged(() => IsNavigationButtonVisible); } }
-		public Visibility IsNavigationButtonVisible { get => FormMode == EFormMode.Content ? Visibility.Hidden : Visibility.Visible; }
+		public enum EFormMode { Content, Text }
+		public EFormMode FormMode { get => _formMode; set { _formMode = value; if (_formMode == EFormMode.Content) SwitchToContent(); else SwitchToText(); } }
 		public bool TextShown { get { return FormMode == EFormMode.Text; } set { FormMode = value ? EFormMode.Text : EFormMode.Content; OnPropertyChanged(() => TextShown); } }
 		private LJ2Book.MainWindowViewModel RootVM;
 		public BrowseBlogViewModel()
@@ -124,9 +120,6 @@ namespace LJ2Book.FormBrowseBlog
 			_prevSearchText = string.Empty;
 			RootVM = null;
 			_RawArticles = null;
-			//Articles = new List<ArticleWrapper>();
-			//Articles.Add(new ArticleWrapper(new Article { AtricleNo = 1, ArticleDT = DateTime.Parse("28.05.2018"), RawTitle = "Article 1", RawBody = "text" }));
-			//Articles.Add(new ArticleWrapper(new Article { AtricleNo = 2, ArticleDT = DateTime.Parse("29.05.2018"), RawTitle = "Article 2", RawBody = "text" }));
 			_TagsList = new ObservableCollection<TagItem>();
 			_TagsList.Add(new TagItem { Name = "tag 1" });
 			_TagsList.Add(new TagItem { Name = "tag 2" });

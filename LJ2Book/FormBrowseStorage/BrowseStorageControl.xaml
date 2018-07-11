@@ -56,6 +56,114 @@
 				</Trigger>
 			</Style.Triggers>
 		</Style>
+		<sys:Double x:Key="BlogCommandButtonWidth">40</sys:Double>
+		<sys:Double x:Key="BlogCommandButtonHeight">40</sys:Double>
+		<Style TargetType="Button" x:Key="DownloadButtonStyle">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderBrush" Value="Transparent" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="Margin" Value="3" />
+			<Setter Property="Width" Value="{StaticResource BlogCommandButtonWidth}" />
+			<Setter Property="Height" Value="{StaticResource BlogCommandButtonHeight}" />
+			<Setter Property="MinWidth" Value="{StaticResource BlogCommandButtonWidth}" />
+			<Setter Property="MinHeight" Value="{StaticResource BlogCommandButtonHeight}" />
+			<Setter Property="MaxWidth" Value="{StaticResource BlogCommandButtonWidth}" />
+			<Setter Property="MaxHeight" Value="{StaticResource BlogCommandButtonHeight}" />
+			<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+			<Setter Property="Focusable" Value="False" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate>
+						<Canvas Opacity="0.3" Width="{StaticResource BlogCommandButtonWidth}" Height="{StaticResource BlogCommandButtonHeight}" Background="Transparent">
+							<Line X1="10" Y1="34" X2="30" Y2="34" Stroke="White" StrokeThickness="1" />
+							<Polygon Points="15,10 15,20 10,20 20,30 30,20 25,20 25,10" Stroke="White" StrokeThickness="1" />
+						</Canvas>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+			<Style.Triggers>
+				<Trigger Property="IsMouseOver" Value="true">
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate>
+								<Canvas Opacity="0.7" Width="{StaticResource BlogCommandButtonWidth}" Height="{StaticResource BlogCommandButtonHeight}" Background="Transparent">
+									<Line X1="10" Y1="34" X2="30" Y2="34" Stroke="White" StrokeThickness="1" />
+									<Polygon Points="15,10 15,20 10,20 20,30 30,20 25,20 25,10" Stroke="White" StrokeThickness="1" />
+								</Canvas>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger>
+				<Trigger Property="IsPressed" Value="true">
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate>
+								<Canvas Opacity="0.7" Width="{StaticResource BlogCommandButtonWidth}" Height="{StaticResource BlogCommandButtonHeight}" Background="White">
+									<Line X1="10" Y1="34" X2="30" Y2="34" Stroke="Black" StrokeThickness="1" />
+									<Polygon Points="15,10 15,20 10,20 20,30 30,20 25,20 25,10" Stroke="Black" StrokeThickness="1" />
+								</Canvas>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+		<Style TargetType="Button" x:Key="ReadButtonStyle">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderBrush" Value="Transparent" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="Margin" Value="3" />
+			<Setter Property="Width" Value="{StaticResource BlogCommandButtonWidth}" />
+			<Setter Property="Height" Value="{StaticResource BlogCommandButtonHeight}" />
+			<Setter Property="MinWidth" Value="{StaticResource BlogCommandButtonWidth}" />
+			<Setter Property="MinHeight" Value="{StaticResource BlogCommandButtonHeight}" />
+			<Setter Property="MaxWidth" Value="{StaticResource BlogCommandButtonWidth}" />
+			<Setter Property="MaxHeight" Value="{StaticResource BlogCommandButtonHeight}" />
+			<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+			<Setter Property="Focusable" Value="False" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate>
+						<Canvas Opacity="0.3" Width="{StaticResource BlogCommandButtonWidth}" Height="{StaticResource BlogCommandButtonHeight}" Background="Transparent">
+							<Polyline Points="08,10 08,25 20,30, 32,25 32,10" Stroke="White" StrokeThickness="1" />
+							<Polygon Points="10,24 20,28 30,24 30,08 20,11 10,08" Stroke="White" StrokeThickness="1" />
+							<Polyline Points="10,22 20,26 30,22" Stroke="White" StrokeThickness="1" />
+							<Polyline Points="20,26 20,11" Stroke="White" StrokeThickness="1" />
+						</Canvas>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+			<Style.Triggers>
+				<Trigger Property="IsMouseOver" Value="true">
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate>
+								<Canvas Opacity="0.7" Width="{StaticResource BlogCommandButtonWidth}" Height="{StaticResource BlogCommandButtonHeight}" Background="Transparent">
+									<Polyline Points="08,10 08,25 20,30, 32,25 32,10" Stroke="White" StrokeThickness="1" />
+									<Polygon Points="10,24 20,28 30,24 30,08 20,11 10,08" Stroke="White" StrokeThickness="1" />
+									<Polyline Points="10,22 20,26 30,22" Stroke="White" StrokeThickness="1" />
+									<Polyline Points="20,26 20,11" Stroke="White" StrokeThickness="1" />
+								</Canvas>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger>
+				<Trigger Property="IsPressed" Value="true">
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate>
+								<Canvas Opacity="0.7" Width="{StaticResource BlogCommandButtonWidth}" Height="{StaticResource BlogCommandButtonHeight}" Background="White">
+									<Polyline Points="08,10 08,25 20,30, 32,25 32,10" Stroke="Black" StrokeThickness="1" />
+									<Polygon Points="10,24 20,28 30,24 30,08 20,11 10,08" Stroke="Black" StrokeThickness="1" />
+									<Polyline Points="10,22 20,26 30,22" Stroke="Black" StrokeThickness="1" />
+									<Polyline Points="20,26 20,11" Stroke="Black" StrokeThickness="1" />
+								</Canvas>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
 	</UserControl.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
@@ -82,53 +190,38 @@
 								</Style>
 							</Grid.Resources>
 							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto" />
 								<ColumnDefinition Width="*" />
 								<ColumnDefinition Width="Auto" />
 								<ColumnDefinition Width="Auto" />
 								<ColumnDefinition Width="Auto" />
 								<ColumnDefinition Width="Auto" />
 								<ColumnDefinition Width="Auto" />
-								<ColumnDefinition Width="Auto" />
 							</Grid.ColumnDefinitions>
-							<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Left" Margin="2">
+							<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Left" Margin="2" MinWidth="200">
 								<TextBlock Text="Blog" FontSize="10" VerticalAlignment="Center"/>
 								<TextBlock Text="{Binding BlogNameToShow}" FontSize="18" Foreground="#B52F1F" VerticalAlignment="Center"/>
+								<TextBlock Text="{Binding LastUpdateAndArticlesCountAsText}" FontSize="12" HorizontalAlignment="Right"/>
 							</StackPanel>
-							<Button Grid.Column="1" Content="L" Margin="3" Width="26" Height="26" 
+							<StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="15,3,15,3" Visibility="{Binding DownloadProgressVisibility}">
+								<TextBlock HorizontalAlignment="Center" Text="{Binding DownloadStageDesc}" />
+								<ProgressBar IsIndeterminate="{Binding IsIndeterminate}" Maximum="{Binding CurrentStageProgressMax}" Value="{Binding CurrentStageProgressValue}" HorizontalAlignment="Stretch" Margin="3"/>
+							</StackPanel>
+							<Button Grid.Column="2" Content="L" Style="{StaticResource ReadButtonStyle}"
 								Command="{Binding Path=DataContext.ReadItem, RelativeSource={RelativeSource AncestorType=UserControl}}" 
 								CommandParameter="{Binding}" 
 								IsEnabled="{Binding CanRead}" />
-							<StackPanel Grid.Column="2" Orientation="Vertical" Margin="15,2,15,2">
-								<TextBlock Text="Update type" FontSize="10"/>
-								<TextBlock Text="{Binding KindOfSynchronizationText}" FontSize="18"/>
-							</StackPanel>
-							<StackPanel Grid.Column="3" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding BlogStatusVisibility}">
-								<TextBlock Text="Last Update:" FontSize="10"/>
-								<TextBlock Text="{Binding LastUpdateAsText}" FontSize="12"/>
-								<TextBlock Text="Last Article:" FontSize="10"/>
-								<TextBlock Text="{Binding LastItemNoText}" FontSize="12"/>
-							</StackPanel>
-							<StackPanel Grid.Column="3" Orientation="Vertical" Margin="15,2,15,2" Visibility="{Binding UpdateProgressVisibility}">
-								<TextBlock Text="Update Progress:" FontSize="10"/>
-								<ProgressBar Maximum="{Binding ProgressMax}" Value="{Binding ProgressValueStage1}" MaxHeight="25" HorizontalAlignment="Stretch" Margin="3" />
-								<ProgressBar Maximum="{Binding ProgressMax}" Value="{Binding ProgressValueStage2}" MaxHeight="25" HorizontalAlignment="Stretch" Margin="3"/>
-								<TextBlock Text="{Binding RemainedTimeText}" FontSize="10" />
-								<TextBlock Text="{Binding ReadyItemsText}" FontSize="10" />
-							</StackPanel>
-							<Button Grid.Column="4" Content="GO" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.UpdateItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-							<Button Grid.Column="5" Content="Del" Margin="3" Width="26" Height="26" Command="{Binding Path=DataContext.ClearArticles, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-							<Button Grid.Column="6" Style="{StaticResource DeleteButtonGraphic24TemplateStyle}" Command="{Binding Path=DataContext.RemoveItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+							<Button Grid.Column="4" Content="GO" Style="{StaticResource DownloadButtonStyle}" 
+									Command="{Binding Path=DataContext.UpdateItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+							<Button Grid.Column="5" Content="Del" Margin="3" Width="26" Height="26" 
+									Command="{Binding Path=DataContext.ClearArticles, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+							<Button Grid.Column="6" Style="{StaticResource DeleteButtonGraphic24TemplateStyle}" 
+									Command="{Binding Path=DataContext.RemoveItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
 						</Grid>
 					</Border>
 				</DataTemplate>
-				<!--<DataTemplate DataType="{x:Type local:NewBlogItem}">
-					<Grid>
-						<Button HorizontalAlignment="Left" Content="New Item" Command="{Binding Path=DataContext.NewBlogCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path=.,RelativeSource={RelativeSource AncestorType=Window}}" Height="30" Width="80" />
-					</Grid>
-				</DataTemplate>-->
 			</ListBox.Resources>
 		</ListBox>
-		<!--<Button Grid.Row="1" HorizontalAlignment="Left" Content="New Item" Command="{Binding Path=DataContext.NewBlogCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path=.,RelativeSource={RelativeSource AncestorType=Window}}" Height="24" Width="60" />-->
 		<Button Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="ADD BLOG" Panel.ZIndex="2" Style="{StaticResource AddBlogButonStyle}"
 				Command="{Binding NewBlogCommand}" 
 				CommandParameter="{Binding Path=.,RelativeSource={RelativeSource AncestorType=Window}}" />

@@ -43,7 +43,7 @@
         <ListView Name="listbox" Grid.Row="1" ItemsSource="{Binding Articles}">
 			<ListView.ItemTemplate>
 				<DataTemplate DataType="{x:Type local:ArticleWrapper}">
-					<Grid>
+					<Grid Cursor="Hand">
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="Auto" SharedSizeGroup="DateColumn" />
 							<ColumnDefinition Width="*" />

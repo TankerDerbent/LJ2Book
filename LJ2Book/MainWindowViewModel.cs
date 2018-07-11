@@ -27,7 +27,10 @@ namespace LJ2Book
 					Mode = MainWindowMode.EnterLoginAndPass;
 					break;
 				case MainWindowMode.ReadBlog:
-					Mode = MainWindowMode.BrowseStorage;
+					if (BrowseBlogVM.FormMode == FormBrowseBlog.BrowseBlogViewModel.EFormMode.Text)
+						BrowseBlogVM.FormMode = FormBrowseBlog.BrowseBlogViewModel.EFormMode.Content;
+					else
+						Mode = MainWindowMode.BrowseStorage;
 					break;
 			}
 		}

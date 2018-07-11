@@ -30,24 +30,12 @@ namespace LJ2Book.FormBrowseBlog
 					SwitchToText();
 			}
 		}
-		public string ShowModeText { get => _formMode == EFormMode.Text ? "Show Content" : "Show Text"; }
 		public string ToggleSortText { get => _isReverseSorting ? "Sort ASC" : "Sort DESC"; }
 		private void SortContent()
 		{
 			Articles = IsReverseSorting ? Articles.OrderByDescending(a => a.DT).ToList() : Articles.OrderBy(a => a.DT).ToList();
 			OnPropertyChanged(() => ToggleSortText);
 		}
-		public ICommand ToggleMode
-		{
-			get
-			{
-				return new BaseCommand(() =>
-				{
-					FormMode = FormMode == EFormMode.Content ? EFormMode.Text : EFormMode.Content;
-				});
-			}
-		}
-
 		private void SwitchToText()
 		{
 			BuildTextAndPreparePictures();
@@ -102,17 +90,41 @@ namespace LJ2Book.FormBrowseBlog
 			sb.Append("\r\n</body>\r\n</html>");
 			_TextToShow = sb.ToString();
 		}
-
 		private void SwitchToContent()
 		{
 			var ctrl = (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog;
 			ctrl.listbox.Visibility = Visibility.Visible;
 			ctrl.browser.Visibility = Visibility.Hidden;
 		}
-
 		public enum EFormMode { Content, Text }
-		public EFormMode FormMode { get => _formMode; set { _formMode = value; if (_formMode == EFormMode.Content) SwitchToContent(); else SwitchToText(); } }
-		public bool TextShown { get { return FormMode == EFormMode.Text; } set { FormMode = value ? EFormMode.Text : EFormMode.Content; OnPropertyChanged(() => TextShown); } }
+		public EFormMode FormMode
+		{
+			get => _formMode;
+			set
+			{
+				_formMode = value;
+				if (_formMode == EFormMode.Content)
+					SwitchToContent();
+				else
+					SwitchToText();
+				OnPropertyChanged(() => ShowModeText);
+				OnPropertyChanged(() => TextShown);
+				OnPropertyChanged(() => IsNavigationButtonVisible);
+			}
+		}
+		public bool TextShown
+		{
+			get => FormMode == EFormMode.Text;
+			set
+			{
+				FormMode = (value ? EFormMode.Text : EFormMode.Content);
+				OnPropertyChanged(() => ShowModeText);
+				OnPropertyChanged(() => TextShown);
+				OnPropertyChanged(() => IsNavigationButtonVisible);
+			}
+		}
+		public Visibility IsNavigationButtonVisible { get => _formMode == EFormMode.Text ? Visibility.Visible : Visibility.Hidden; }
+		public string ShowModeText { get => _formMode == EFormMode.Text ? "Basck to Content" : "Show Text"; }
 		private LJ2Book.MainWindowViewModel RootVM;
 		public BrowseBlogViewModel()
 		{
@@ -128,6 +140,7 @@ namespace LJ2Book.FormBrowseBlog
 		}
 		public BrowseBlogViewModel(LJ2Book.MainWindowViewModel _RootVM, Window window = null) : base(window)
 		{
+			_formMode = EFormMode.Content;
 			TextToSearch = string.Empty;
 			_prevSearchText = string.Empty;
 			RootVM = _RootVM;
@@ -163,10 +176,8 @@ namespace LJ2Book.FormBrowseBlog
 			prevTags = currentSelection;
 			FilterChanged();
 		}
-
 		private List<Article> _RawArticles;
 		private bool _doNotShowHiddenArticles = true;
-
 		public List<ArticleWrapper> Articles { get; internal set; }
 		public bool DoNotShowHiddenArticles { get { return _doNotShowHiddenArticles; } set { _doNotShowHiddenArticles = value; FilterChanged(); } }
 		public string TextToSearch { get; set; }
@@ -236,8 +247,6 @@ namespace LJ2Book.FormBrowseBlog
 		}
 		private ObservableCollection<TagItem> _TagsList;
 		private string _TextToShow;
-		//private List<Picture> _Pictures;
-
 		public ObservableCollection<TagItem> TagsList { get { return _TagsList; } set { _TagsList = value; OnPropertyChanged(() => TagsList); } }
 		public ICommand TagsListChanged
 		{
@@ -256,11 +265,49 @@ namespace LJ2Book.FormBrowseBlog
 				});
 			}
 		}
+		public ICommand NextArticle { get { return new BaseCommand(() => ScrollToNextLabel()); } }
+		public ICommand PrevArticle { get { return new BaseCommand(() => ScrollToPrevArticle()); } }
+		private async void ScrollToPrevArticle()
+		{
+			string script = @"
+var nPageYOffset = window.pageYOffset;
+var labels = document.getElementsByTagName('a');
+var len = labels.length;
+for(var i = len - 1; i >= 0; i--)
+{
+	var labelOffset = labels[i].offsetTop;
+	if (labelOffset < nPageYOffset)
+	{
+		window.scrollTo(0, labelOffset);
+		break;
+	}
+}
+";
+			await (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog.browser.EvaluateScriptAsync(script);
+		}
+
+		private async void ScrollToNextLabel()
+		{
+			string script = @"
+var nPageYOffset = window.pageYOffset;
+var labels = document.getElementsByTagName('a');
+var len = labels.length;
+for(var i = 1; i < len; i++)
+{
+	var labelOffset = labels[i].offsetTop;
+	if (labelOffset > nPageYOffset)
+	{
+		window.scrollTo(0, labelOffset);
+		break;
+	}
+}
+";
+			await (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog.browser.EvaluateScriptAsync(script);
+		}
 		public override void Dispose()
 		{
 		}
 	}
-
 	class TagItem : Notify
 	{
 		public string Name { get; set; }

@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TryShowBlocks"
+		xmlns:sys="clr-namespace:System;assembly=mscorlib"
 		xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
         mc:Ignorable="d"
         Title="MainWindow" Height="250" Width="600" WindowStartupLocation="CenterScreen" KeyDown="Window_KeyDown">
@@ -14,6 +15,108 @@
 		<Storyboard x:Key="ShowElement">
 			<DoubleAnimation Storyboard.TargetProperty="Opacity" Duration="0:0:0.2" To="0" />
 		</Storyboard>
+		<sys:Double x:Key="InBrowserNavButtonWidth">120</sys:Double>
+		<sys:Double x:Key="InBrowserNavButtonHeight">14</sys:Double>
+		<Style TargetType="Button" x:Key="InBrowserNavBackButtonStyle">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderBrush" Value="Transparent" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="Margin" Value="0" />
+			<Setter Property="Width" Value="{StaticResource InBrowserNavButtonWidth}" />
+			<Setter Property="Height" Value="{StaticResource InBrowserNavButtonHeight}" />
+			<Setter Property="MinWidth" Value="{StaticResource InBrowserNavButtonWidth}" />
+			<Setter Property="MinHeight" Value="{StaticResource InBrowserNavButtonHeight}" />
+			<Setter Property="MaxWidth" Value="{StaticResource InBrowserNavButtonWidth}" />
+			<Setter Property="MaxHeight" Value="{StaticResource InBrowserNavButtonHeight}" />
+			<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+			<Setter Property="Focusable" Value="False" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate>
+						<Canvas Opacity="0.3" Width="{StaticResource InBrowserNavButtonWidth}" Height="{StaticResource InBrowserNavButtonHeight}" Background="Transparent">
+							<Polygon Points="00,00 14,14 106,14 120,00" Stroke="Black" StrokeThickness="1" />
+							<Polyline Points="52,11 60,3 68,11" Stroke="Black" StrokeThickness="1" />
+						</Canvas>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+			<Style.Triggers>
+				<Trigger Property="IsMouseOver" Value="true">
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate>
+								<Canvas Opacity="0.7" Width="{StaticResource InBrowserNavButtonWidth}" Height="{StaticResource InBrowserNavButtonHeight}" Background="Transparent">
+									<Polygon Points="00,00 14,14 106,14 120,00" Stroke="Black" StrokeThickness="1" Fill="White" />
+									<Polyline Points="52,11 60,3 68,11" Stroke="Black" StrokeThickness="1" />
+								</Canvas>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger>
+				<Trigger Property="IsPressed" Value="true">
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate>
+								<Canvas Opacity="0.7" Width="{StaticResource InBrowserNavButtonWidth}" Height="{StaticResource InBrowserNavButtonHeight}" Background="White">
+									<Polygon Points="00,00 14,14 106,14 120,00" Stroke="White" StrokeThickness="1" Fill="Black" />
+									<Polyline Points="52,11 60,3 68,11" Stroke="White" StrokeThickness="1" />
+								</Canvas>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+		<Style TargetType="Button" x:Key="InBrowserNavForwButtonStyle">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderBrush" Value="Transparent" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="Margin" Value="0" />
+			<Setter Property="Width" Value="{StaticResource InBrowserNavButtonWidth}" />
+			<Setter Property="Height" Value="{StaticResource InBrowserNavButtonHeight}" />
+			<Setter Property="MinWidth" Value="{StaticResource InBrowserNavButtonWidth}" />
+			<Setter Property="MinHeight" Value="{StaticResource InBrowserNavButtonHeight}" />
+			<Setter Property="MaxWidth" Value="{StaticResource InBrowserNavButtonWidth}" />
+			<Setter Property="MaxHeight" Value="{StaticResource InBrowserNavButtonHeight}" />
+			<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+			<Setter Property="Focusable" Value="False" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate>
+						<Canvas Opacity="0.3" Width="{StaticResource InBrowserNavButtonWidth}" Height="{StaticResource InBrowserNavButtonHeight}" Background="Transparent">
+							<Polygon Points="00,14 14,00 106,00 120,14" Stroke="Black" StrokeThickness="1" />
+							<Polyline Points="52,03 60,12 68,03" Stroke="Black" StrokeThickness="1" />
+						</Canvas>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+			<Style.Triggers>
+				<Trigger Property="IsMouseOver" Value="true">
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate>
+								<Canvas Opacity="0.7" Width="{StaticResource InBrowserNavButtonWidth}" Height="{StaticResource InBrowserNavButtonHeight}" Background="Transparent">
+									<Polygon Points="00,14 14,00 106,00 120,14" Stroke="Black" StrokeThickness="1" Fill="White" />
+									<Polyline Points="52,03 60,12 68,03" Stroke="Black" StrokeThickness="1" />
+								</Canvas>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger>
+				<Trigger Property="IsPressed" Value="true">
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate>
+								<Canvas Opacity="0.7" Width="{StaticResource InBrowserNavButtonWidth}" Height="{StaticResource InBrowserNavButtonHeight}" Background="White">
+									<Polygon Points="00,14 14,00 106,00 120,14" Stroke="White" StrokeThickness="1" Fill="Black" />
+									<Polyline Points="52,03 60,12 68,03" Stroke="White" StrokeThickness="1" />
+								</Canvas>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
 	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
@@ -40,7 +143,7 @@
 				</DataTemplate>
 			</ListBox.ItemTemplate>
 		</ListBox>
-		<Button Grid.Row="1" Width="40" Content="^" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,50,0" Panel.ZIndex="2" Opacity="0.3" Visibility="{Binding IsNavigationButtonVisible}" Command="{Binding PrevArticle}" />
-		<Button Grid.Row="1" Width="40" Content="v" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,50,0" Panel.ZIndex="2" Opacity="0.3" Visibility="{Binding IsNavigationButtonVisible}" Command="{Binding NextArticle}" />
+		<Button Grid.Row="1" Style="{StaticResource InBrowserNavBackButtonStyle}" VerticalAlignment="Top" HorizontalAlignment="Right" Panel.ZIndex="2" Visibility="{Binding IsNavigationButtonVisible}" Command="{Binding PrevArticle}" />
+		<Button Grid.Row="1" Style="{StaticResource InBrowserNavForwButtonStyle}" VerticalAlignment="Bottom" HorizontalAlignment="Right" Panel.ZIndex="2" Visibility="{Binding IsNavigationButtonVisible}" Command="{Binding NextArticle}" />
 	</Grid>
 </Window>

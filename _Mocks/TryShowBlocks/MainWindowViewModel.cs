@@ -25,7 +25,7 @@ namespace TryShowBlocks
 			DateTime dtStart = DateTime.Parse("1.1.2018 16:35");
 			for (int i = 1; i < 5; i++)
 			{
-				string[] Lines = File.ReadAllLines(string.Format("C:\\Projects\\WinApps\\LJ2Book\\_Mocks\\TryShowBlocks\\files\\{0}.htm", i), Encoding.UTF8);
+				string[] Lines = File.ReadAllLines(string.Format("D:\\ProjOther\\_SamplesApps\\LJ2Book\\_Mocks\\TryShowBlocks\\files\\{0}.htm", i), Encoding.UTF8);
 				Articles.Add(new ArticleWrapper(dtStart.AddDays(i), Lines[0], string.Join("\r\n", Lines.Skip(1))));
 			}
 			IsReverseSorting = false;

@@ -1,6 +1,7 @@
 ﻿using LJ2Book.DataBase;
 using SimplesNet;
 using System;
+using System.Diagnostics;
 using System.Text;
 using System.Windows;
 
@@ -46,7 +47,6 @@ namespace LJ2Book.FormBrowseStorage
 		public int CurrentStageProgressMax { get; set; }
 		public int CurrentStageProgressValue { get; set; }
 		private DateTime _DownloadStarted = DateTime.MinValue;
-
 		private BlogWrapper()
 		{
 			CurrentStageProgressMax = 1;
@@ -56,7 +56,6 @@ namespace LJ2Book.FormBrowseStorage
 		{
 			return new BlogWrapper { blog = _blog };
 		}
-
 		public void Update()
 		{
 			_DownloadStarted = DateTime.Now;
@@ -93,9 +92,9 @@ namespace LJ2Book.FormBrowseStorage
 			{
 				switch (_Stage)
 				{
-					case 1: return "Gathering blog general info...";
-					case 2: return "Stage 1: listing articles..";
-					case 3: return "Stage 1: downloading articles..";
+					case 1: return "Stage 1: gathering general info...";
+					case 2: return "Stage 2: listing articles..";
+					case 3: return "Stage 3: downloading articles..";
 				}
 				return string.Empty;
 			}
@@ -108,7 +107,7 @@ namespace LJ2Book.FormBrowseStorage
 		{
 			CurrentStageProgressMax = MaxItems;
 			CurrentStageProgressValue = 0;
-			Stage = 1;
+			Stage = 2;
 		}
 		private void OnStepProgressStage1()
 		{
@@ -119,47 +118,17 @@ namespace LJ2Book.FormBrowseStorage
 		{
 			CurrentStageProgressMax = MaxItems;
 			CurrentStageProgressValue = 0;
-			Stage = 2;
+			Stage = 3;
 		}
 		private void OnStepProgressStage2()
 		{
 			CurrentStageProgressValue += 1;
 			OnPropertyChanged(() => CurrentStageProgressValue);
 		}
-
-		//public string RemainedTimeText
-		//{
-		//	get
-		//	{
-		//		if (IsUpdating)
-		//		{
-		//			if (ProgressValueStage2 == 0)
-		//				return string.Empty;
-		//			else
-		//				return TimeSpan.FromTicks((DateTime.Now - _DownloadStarted).Ticks * ProgressMax2 / ProgressValueStage2).ToString(@"hh\:mm\:ss");
-		//		}
-		//		else
-		//			return string.Empty;
-		//	}
-		//}
-		//public string ReadyItemsText
-		//{
-		//	get
-		//	{
-		//		if (IsUpdating)
-		//		{
-		//			return string.Format("{0} of {1} ready", ProgressValueStage2, ProgressMax2);
-		//		}
-		//		else
-		//			return string.Empty;
-		//	}
-		//}
-
 		private void Dwmgr_BlogInfoArrived()
 		{
 			OnPropertyChanged(() => LastUpdateAndArticlesCountAsText);
 		}
-
 		internal void Refresh()
 		{
 			OnPropertyChanged(() => LastUpdateAndArticlesCountAsText);

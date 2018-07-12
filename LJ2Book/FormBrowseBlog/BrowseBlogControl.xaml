@@ -149,8 +149,28 @@
 			
 		</DockPanel>
 		<cefSharp:ChromiumWebBrowser Name="browser" Grid.Row="1" Visibility="Hidden" />
-        <ListView Name="listbox" Grid.Row="1" ItemsSource="{Binding Articles}">
-			<ListView.ItemTemplate>
+        <ListBox Name="listbox" Grid.Row="1" ItemsSource="{Binding Articles}" SelectedItem="">
+			<ListBox.Resources>
+				<Style TargetType="Button" x:Key="LabelLikeButtonStyle">
+					<Setter Property="Background" Value="Transparent" />
+					<Setter Property="BorderBrush" Value="Transparent" />
+					<Setter Property="Padding" Value="3" />
+					<Setter Property="Margin" Value="10,2,3,4" />
+					<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+					<Setter Property="Focusable" Value="False" />
+					<Setter Property="Cursor" Value="Hand" />
+					<Setter Property="Template">
+						<Setter.Value>
+							<ControlTemplate TargetType="Button">
+								<Border Background="Transparent" Width="{TemplateBinding Width}" VerticalAlignment="Center">
+									<ContentPresenter ContentSource="{TemplateBinding Content}" />
+								</Border>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+				</Style>
+			</ListBox.Resources>
+			<ListBox.ItemTemplate>
 				<DataTemplate DataType="{x:Type local:ArticleWrapper}">
 					<Grid Cursor="Hand">
 						<Grid.ColumnDefinitions>
@@ -158,11 +178,13 @@
 							<ColumnDefinition Width="*" />
 						</Grid.ColumnDefinitions>
 						<Label Grid.Column="0" Content="{Binding DateTimeText}" Margin="3" />
-						<Label Grid.Column="1" Content="{Binding Title}" Margin="3" />
+						<Button Grid.Column="1" Content="{Binding Title}" Style="{StaticResource LabelLikeButtonStyle}" 
+								Command="{Binding Path=DataContext.ShowSelectedArticle, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+								CommandParameter="{Binding}" />
 					</Grid>
 				</DataTemplate>
-			</ListView.ItemTemplate>
-        </ListView>
+			</ListBox.ItemTemplate>
+        </ListBox>
 		<ListBox Grid.Row="1" Name="listTags" VerticalAlignment="Stretch" Width="400" HorizontalAlignment="Right" Margin="0,0,-400,0" ItemsSource="{Binding TagsList}">
 			<ListBox.ItemTemplate>
 				<DataTemplate>

@@ -21,13 +21,14 @@ namespace LJ2Book.FormBrowseBlog
 		private EFormMode _formMode;
 		public bool IsReverseSorting
 		{
-			get => _isReverseSorting; set
+			get => _isReverseSorting;
+			set
 			{
 				_isReverseSorting = value;
 				SortContent();
 				OnPropertyChanged(() => Articles);
 				if (FormMode == EFormMode.Text)
-					SwitchToText();
+					SwitchToText(Articles);
 			}
 		}
 		public string ToggleSortText { get => _isReverseSorting ? "Sort ASC" : "Sort DESC"; }
@@ -36,9 +37,9 @@ namespace LJ2Book.FormBrowseBlog
 			Articles = IsReverseSorting ? Articles.OrderByDescending(a => a.DT).ToList() : Articles.OrderBy(a => a.DT).ToList();
 			OnPropertyChanged(() => ToggleSortText);
 		}
-		private void SwitchToText()
+		private void SwitchToText(List<ArticleWrapper> _articles)
 		{
-			BuildTextAndPreparePictures();
+			BuildTextAndPreparePictures(_articles);
 			var ctrl = (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog;
 			foreach (var img in _CachedImages)
 				ctrl.browser.RegisterResourceHandler(img.Url, img.imageStream, img.mimeType);
@@ -47,23 +48,19 @@ namespace LJ2Book.FormBrowseBlog
 			ctrl.listbox.Visibility = Visibility.Hidden;
 		}
 		private List<CachedImage> _CachedImages;
-		private void BuildTextAndPreparePictures()
+		private void BuildTextAndPreparePictures(List<ArticleWrapper> _articles)
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.Append("<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<meta charset=\"utf-8\">");
-			sb.Append("</head>\r\n<body background='#FFFFFF'>");
+			sb.Append("<!DOCTYPE html>\r\n<html>\r\n<head>\r\n\t<meta charset=\"utf-8\">\r\n</head>\r\n<body background='#FFFFFF'>\r\n");
 			int LabelNo = 1;
-			//List<string> imagesUrls = new List<string>();
 			_CachedImages = new List<CachedImage>();
 			Regex rxImageTag = new Regex("<img[^<]*>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 			Regex rxImageUrl = new Regex("src=\\\"([^\\\"]*)\"", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-			foreach (var a in Articles)
+			foreach (var a in _articles)
 			{
-				sb.Append(string.Format("<a name='article_{0}' />", LabelNo));
-				sb.Append(string.Format("<H1>{0}. ", LabelNo));
+				sb.Append(string.Format("", LabelNo));
+				sb.Append(string.Format("<a name='article_{0}'><H1>{0}. {1}</H1></a>\r\n", LabelNo, a.Title));
 				LabelNo += 1;
-				sb.Append(a.Title);
-				sb.Append("</H1>\r\n");
 				sb.Append(a.RawBody);
 				sb.Append("\r\n");
 
@@ -86,17 +83,19 @@ namespace LJ2Book.FormBrowseBlog
 					}
 				}
 			}
-			sb.Append("<script type=\"text/javascript\">var ljsales = document.getElementsByClassName('ljsale'); for (var i = 0; i < ljsales.length; i++) ljsales[i].parentNode.removeChild(ljsales[i]);</script>");
+			//sb.Append("<script type=\"text/javascript\">var ljsales = document.getElementsByClassName('ljsale'); for (var i = 0; i < ljsales.length; i++) ljsales[i].parentNode.removeChild(ljsales[i]);</script>");
 			sb.Append("\r\n</body>\r\n</html>");
 			_TextToShow = sb.ToString();
 		}
 		private void SwitchToContent()
 		{
+			SingleSelection = false;
 			var ctrl = (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog;
 			ctrl.listbox.Visibility = Visibility.Visible;
 			ctrl.browser.Visibility = Visibility.Hidden;
 		}
 		public enum EFormMode { Content, Text }
+		private ArticleWrapper selectedArticle;
 		public EFormMode FormMode
 		{
 			get => _formMode;
@@ -106,7 +105,12 @@ namespace LJ2Book.FormBrowseBlog
 				if (_formMode == EFormMode.Content)
 					SwitchToContent();
 				else
-					SwitchToText();
+				{
+					if (selectedArticle == null)
+						SwitchToText(Articles);
+					else
+						SwitchToText(new List<ArticleWrapper> { selectedArticle });
+				}
 				OnPropertyChanged(() => ShowModeText);
 				OnPropertyChanged(() => TextShown);
 				OnPropertyChanged(() => IsNavigationButtonVisible);
@@ -123,8 +127,8 @@ namespace LJ2Book.FormBrowseBlog
 				OnPropertyChanged(() => IsNavigationButtonVisible);
 			}
 		}
-		public Visibility IsNavigationButtonVisible { get => _formMode == EFormMode.Text ? Visibility.Visible : Visibility.Hidden; }
-		public string ShowModeText { get => _formMode == EFormMode.Text ? "Basck to Content" : "Show Text"; }
+		public Visibility IsNavigationButtonVisible { get => (SingleSelection || _formMode == EFormMode.Content) ? Visibility.Hidden : Visibility.Visible; }
+		public string ShowModeText { get => _formMode == EFormMode.Text ? "Back to Content" : "Show Text"; }
 		private LJ2Book.MainWindowViewModel RootVM;
 		public BrowseBlogViewModel()
 		{
@@ -179,7 +183,7 @@ namespace LJ2Book.FormBrowseBlog
 		private List<Article> _RawArticles;
 		private bool _doNotShowHiddenArticles = true;
 		public List<ArticleWrapper> Articles { get; internal set; }
-		public bool DoNotShowHiddenArticles { get { return _doNotShowHiddenArticles; } set { _doNotShowHiddenArticles = value; FilterChanged(); } }
+		public bool DoNotShowHiddenArticles { get => _doNotShowHiddenArticles; set { _doNotShowHiddenArticles = value; FilterChanged(); } }
 		public string TextToSearch { get; set; }
 		public void SelectedBlogChanged()
 		{
@@ -247,7 +251,7 @@ namespace LJ2Book.FormBrowseBlog
 		}
 		private ObservableCollection<TagItem> _TagsList;
 		private string _TextToShow;
-		public ObservableCollection<TagItem> TagsList { get { return _TagsList; } set { _TagsList = value; OnPropertyChanged(() => TagsList); } }
+		public ObservableCollection<TagItem> TagsList { get => _TagsList; set { _TagsList = value; OnPropertyChanged(() => TagsList); } }
 		public ICommand TagsListChanged
 		{
 			get
@@ -265,8 +269,8 @@ namespace LJ2Book.FormBrowseBlog
 				});
 			}
 		}
-		public ICommand NextArticle { get { return new BaseCommand(() => ScrollToNextLabel()); } }
-		public ICommand PrevArticle { get { return new BaseCommand(() => ScrollToPrevArticle()); } }
+		public ICommand NextArticle { get => new BaseCommand(() => ScrollToNextLabel()); }
+		public ICommand PrevArticle { get => new BaseCommand(() => ScrollToPrevArticle()); }
 		private async void ScrollToPrevArticle()
 		{
 			string script = @"
@@ -285,7 +289,6 @@ for(var i = len - 1; i >= 0; i--)
 ";
 			await (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog.browser.EvaluateScriptAsync(script);
 		}
-
 		private async void ScrollToNextLabel()
 		{
 			string script = @"
@@ -303,6 +306,15 @@ for(var i = 1; i < len; i++)
 }
 ";
 			await (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog.browser.EvaluateScriptAsync(script);
+		}
+		public ICommand ShowSelectedArticle { get => new BaseCommand(x => _ShowSelectedArticle(x as ArticleWrapper)); }
+		private bool SingleSelection = false;
+		private void _ShowSelectedArticle(ArticleWrapper articleWrapper)
+		{
+			SingleSelection = true;
+			selectedArticle = articleWrapper;
+			FormMode = EFormMode.Text;
+			selectedArticle = null;
 		}
 		public override void Dispose()
 		{

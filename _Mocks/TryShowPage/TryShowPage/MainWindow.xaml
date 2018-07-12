@@ -6,7 +6,7 @@
         xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
         xmlns:local="clr-namespace:TryShowPage"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="600" KeyDown="Window_KeyDown">
+        Title="MainWindow" Height="350" Width="600" KeyDown="Window_KeyDown" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

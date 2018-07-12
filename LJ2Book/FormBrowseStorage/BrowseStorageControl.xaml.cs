@@ -32,9 +32,7 @@ namespace LJ2Book.FormBrowseStorage
 				if (e.PropertyName == SimplesNet.Notify.GetPropertyName(() => vm.Blogs))
 				{
 					ListBlogs.ItemsSource = null;
-					ListBlogs.SetBinding(ListView.ItemsSourceProperty, "Blogs");
-					//BindingOperations.GetBindingExpressionBase((ComboBox)sender, ComboBox.ItemsSourceProperty).UpdateTarget();
-					//((TextBox)sender).GetBindingExpression(ComboBox.TextProperty).UpdateSource();
+					ListBlogs.SetBinding(ListBox.ItemsSourceProperty, "Blogs");
 				}
 			}
 		}

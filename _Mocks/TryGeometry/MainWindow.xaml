@@ -6,32 +6,30 @@
         xmlns:local="clr-namespace:TryGeometry"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="MainWindow" Height="250" Width="350" Background="#003040" KeyDown="Window_KeyDown">
+        Title="MainWindow" Height="250" Width="350" Background="#003040" KeyDown="Window_KeyDown" WindowStartupLocation="CenterScreen">
 	<Window.Resources>
-		<sys:Double x:Key="BlogCommandButtonWidth">40</sys:Double>
-		<sys:Double x:Key="BlogCommandButtonHeight">40</sys:Double>
-		<Style TargetType="Button" x:Key="ReadButtonStyle">
+		<!--<sys:Double x:Key="BlogCommandButtonWidth">140</sys:Double>
+		<sys:Double x:Key="BlogCommandButtonHeight">40</sys:Double>-->
+		<Style TargetType="Button" x:Key="LabelLikeButtonStyle">
 			<Setter Property="Background" Value="Transparent" />
 			<Setter Property="BorderBrush" Value="Transparent" />
 			<Setter Property="Padding" Value="0" />
 			<Setter Property="Margin" Value="3" />
-			<Setter Property="Width" Value="{StaticResource BlogCommandButtonWidth}" />
+			<!--<Setter Property="Width" Value="{StaticResource BlogCommandButtonWidth}" />
 			<Setter Property="Height" Value="{StaticResource BlogCommandButtonHeight}" />
 			<Setter Property="MinWidth" Value="{StaticResource BlogCommandButtonWidth}" />
 			<Setter Property="MinHeight" Value="{StaticResource BlogCommandButtonHeight}" />
 			<Setter Property="MaxWidth" Value="{StaticResource BlogCommandButtonWidth}" />
-			<Setter Property="MaxHeight" Value="{StaticResource BlogCommandButtonHeight}" />
+			<Setter Property="MaxHeight" Value="{StaticResource BlogCommandButtonHeight}" />-->
 			<Setter Property="FocusVisualStyle" Value="{x:Null}" />
 			<Setter Property="Focusable" Value="False" />
+			<Setter Property="Cursor" Value="Hand" />
 			<Setter Property="Template">
 				<Setter.Value>
-					<ControlTemplate>
-						<Canvas Opacity="0.3" Width="{StaticResource BlogCommandButtonWidth}" Height="{StaticResource BlogCommandButtonHeight}" Background="Transparent">
-							<Polyline Points="08,10 08,25 20,30, 32,25 32,10" Stroke="White" StrokeThickness="1" />
-							<Polygon Points="10,24 20,28 30,24 30,08 20,11 10,08" Stroke="White" StrokeThickness="1" />
-							<Polyline Points="10,22 20,26 30,22" Stroke="White" StrokeThickness="1" />
-							<Polyline Points="20,26 20,11" Stroke="White" StrokeThickness="1" />
-						</Canvas>
+					<ControlTemplate TargetType="Button">
+						<Border Background="{TemplateBinding Background}" HorizontalAlignment="Center" Width="{TemplateBinding Width}">
+							<ContentPresenter ContentSource="{TemplateBinding Content}" />
+						</Border>
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
@@ -39,13 +37,12 @@
 				<Trigger Property="IsMouseOver" Value="true">
 					<Setter Property="Template">
 						<Setter.Value>
-							<ControlTemplate>
-								<Canvas Opacity="0.7" Width="{StaticResource BlogCommandButtonWidth}" Height="{StaticResource BlogCommandButtonHeight}" Background="Transparent">
-									<Polyline Points="08,10 08,25 20,30, 32,25 32,10" Stroke="White" StrokeThickness="1" />
-									<Polygon Points="10,24 20,28 30,24 30,08 20,11 10,08" Stroke="White" StrokeThickness="1" />
-									<Polyline Points="10,22 20,26 30,22" Stroke="White" StrokeThickness="1" />
-									<Polyline Points="20,26 20,11" Stroke="White" StrokeThickness="1" />
-								</Canvas>
+							<ControlTemplate TargetType="Button">
+								<ContentPresenter ContentSource="{TemplateBinding Content}" />
+								<!--<Canvas Opacity="0.7" Width="{StaticResource BlogCommandButtonWidth}" Height="{StaticResource BlogCommandButtonHeight}" Background="Transparent">
+									<Line X1="10" Y1="10" X2="30" Y2="30" Stroke="White" StrokeThickness="1" />
+									<Line X1="10" Y1="30" X2="30" Y2="10" Stroke="White" StrokeThickness="1" />
+								</Canvas>-->
 							</ControlTemplate>
 						</Setter.Value>
 					</Setter>
@@ -53,13 +50,12 @@
 				<Trigger Property="IsPressed" Value="true">
 					<Setter Property="Template">
 						<Setter.Value>
-							<ControlTemplate>
-								<Canvas Opacity="0.7" Width="{StaticResource BlogCommandButtonWidth}" Height="{StaticResource BlogCommandButtonHeight}" Background="White">
-									<Polyline Points="08,10 08,25 20,30, 32,25 32,10" Stroke="Black" StrokeThickness="1" />
-									<Polygon Points="10,24 20,28 30,24 30,08 20,11 10,08" Stroke="Black" StrokeThickness="1" />
-									<Polyline Points="10,22 20,26 30,22" Stroke="Black" StrokeThickness="1" />
-									<Polyline Points="20,26 20,11" Stroke="Black" StrokeThickness="1" />
-								</Canvas>
+							<ControlTemplate TargetType="Button">
+								<ContentPresenter ContentSource="{TemplateBinding Content}" />
+								<!--<Canvas Opacity="0.7" Width="{StaticResource BlogCommandButtonWidth}" Height="{StaticResource BlogCommandButtonHeight}" Background="White">
+									<Line X1="10" Y1="10" X2="30" Y2="30" Stroke="Black" StrokeThickness="1" />
+									<Line X1="10" Y1="30" X2="30" Y2="10" Stroke="Black" StrokeThickness="1" />
+								</Canvas>-->
 							</ControlTemplate>
 						</Setter.Value>
 					</Setter>
@@ -68,7 +64,7 @@
 		</Style>
 	</Window.Resources>
     <Grid>
-		<Button Style="{StaticResource ReadButtonStyle}" />
+		<Button Style="{StaticResource LabelLikeButtonStyle}" Content="TEST" Foreground="Red" Background="Blue" Width="120" Height="35" HorizontalContentAlignment="Center" />
 
 	</Grid>
 </Window>

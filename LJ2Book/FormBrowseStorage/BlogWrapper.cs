@@ -43,7 +43,7 @@ namespace LJ2Book.FormBrowseStorage
 				return result.ToString();
 			}
 		}
-		public bool CanRead { get => blog.LastSync != DateTime.MinValue; }
+		public bool CanRead { get => (blog.LastSync != DateTime.MinValue) && (_Stage == 0); }
 		public int CurrentStageProgressMax { get; set; }
 		public int CurrentStageProgressValue { get; set; }
 		private DateTime _DownloadStarted = DateTime.MinValue;
@@ -82,6 +82,7 @@ namespace LJ2Book.FormBrowseStorage
 				OnPropertyChanged(() => CurrentStageProgressValue);
 				OnPropertyChanged(() => CurrentStageProgressMax);
 				OnPropertyChanged(() => CurrentStageProgressValue);
+				OnPropertyChanged(() => CanRead);
 			}
 		}
 		public Visibility DownloadProgressVisibility { get => Stage > 0 ? Visibility.Visible : Visibility.Collapsed; }

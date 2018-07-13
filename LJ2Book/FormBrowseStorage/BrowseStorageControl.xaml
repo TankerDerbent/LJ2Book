@@ -207,13 +207,13 @@
 								<TextBlock HorizontalAlignment="Center" Text="{Binding DownloadStageDesc}" />
 								<ProgressBar IsIndeterminate="{Binding IsIndeterminate}" Maximum="{Binding CurrentStageProgressMax}" Value="{Binding CurrentStageProgressValue}" HorizontalAlignment="Stretch" Margin="3"/>
 							</StackPanel>
-							<Button Grid.Column="2" Content="L" Style="{StaticResource ReadButtonStyle}"
+							<Button Grid.Column="2" Content="Read blog" Style="{StaticResource ReadButtonStyle}"
 								Command="{Binding Path=DataContext.ReadItem, RelativeSource={RelativeSource AncestorType=UserControl}}" 
 								CommandParameter="{Binding}" 
 								IsEnabled="{Binding CanRead}" />
-							<Button Grid.Column="4" Content="GO" Style="{StaticResource DownloadButtonStyle}" 
+							<Button Grid.Column="4" Content="Sync Blog" Style="{StaticResource DownloadButtonStyle}" 
 									Command="{Binding Path=DataContext.UpdateItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-							<Button Grid.Column="5" Content="Del" Margin="3" Width="26" Height="26" 
+							<Button Grid.Column="5" Content="Del blog content" Margin="3" Width="26" Height="26" 
 									Command="{Binding Path=DataContext.ClearArticles, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
 							<Button Grid.Column="6" Style="{StaticResource DeleteButtonGraphic24TemplateStyle}" 
 									Command="{Binding Path=DataContext.RemoveItem, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />

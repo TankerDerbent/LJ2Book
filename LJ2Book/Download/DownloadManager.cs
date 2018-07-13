@@ -24,12 +24,6 @@ namespace LJ2Book.Download
 		// objects
 		private static Connection cnn;
 		private static object cnnSyncObject = new object();
-		//public SynchronizationContext WpfSyncContext { get; set; }
-		
-		//public DownloadManager(SynchronizationContext _ctx)
-		//{
-		//	WpfSyncContext = _ctx;
-		//}
 		public static bool TryLogin(string _Login, string _encryptedPass)
 		{
 			lock (cnnSyncObject)
@@ -53,7 +47,7 @@ namespace LJ2Book.Download
 
 			private SynchronizationContext SyncContext;
 			public Blog blog { get; set; }
-			public const int DOWNLOAD_THREADS = 1;
+			public const int DOWNLOAD_THREADS = 30;
 			public Semaphore semaphore;
 			public BlogSynchronizationTask(SynchronizationContext _SyncContext, Blog _blog)
 			{

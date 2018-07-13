@@ -53,7 +53,7 @@ namespace LJ2Book.Download
 
 			private SynchronizationContext SyncContext;
 			public Blog blog { get; set; }
-			public const int DOWNLOAD_THREADS = 3;
+			public const int DOWNLOAD_THREADS = 1;
 			public Semaphore semaphore;
 			public BlogSynchronizationTask(SynchronizationContext _SyncContext, Blog _blog)
 			{
@@ -429,25 +429,20 @@ namespace LJ2Book.Download
 				StopCollection(false);
 			if (e.Url != ti.article.Url)
 				return;
-			ExtractArticleTitle(1);
+			ExtractArticleTitle();
 		}
-		private async void ExtractArticleTitle(int tagNo)
+		private async void ExtractArticleTitle()
 		{
-			string TagName = string.Empty;
-			switch (tagNo)
-			{
-				case 1:
-					TagName = "aentry-post__title-text";
-					break;
-				case 2:
-					TagName = "entry-title";
-					break;
-				default:
-					ExtractArticleBody(1);
-					return;
-			}
+			string script = @"(function() {{
+var tittles = document.getElementsByClassName('aentry-post__title-text');
+if (tittles.length < 1)
+	tittles = document.getElementsByClassName('entry-title');
+if (tittles.length > 0) 
+	return tittles[0].innerHTML;
+else
+	return ''
+ }} )();";
 
-			string script = string.Format("(function() {{ var x = document.getElementsByClassName('{0}'); return x.length > 0 ? x[0].innerHTML : '';}} )();", TagName);
 			var task = browser.EvaluateScriptAsync(script);
 			await task.ContinueWith(t =>
 			{
@@ -455,32 +450,31 @@ namespace LJ2Book.Download
 				{
 					var response = t.Result;
 					ti.article.RawTitle = response.Success ? response.Result.ToString().Trim() : string.Empty;
-					if (ti.article.RawTitle.Length == 0)
-						ExtractArticleTitle(tagNo + 1);
-					else
-						ExtractArticleBody(1);
+					ExtractArticleBody();
 				}
 				else
 					StopCollection(false);
 			});
 		}
-		private async void ExtractArticleBody(int tagNo)
+		private async void ExtractArticleBody()
 		{
-			string TagName = string.Empty;
-			switch (tagNo)
-			{
-				case 1:
-					TagName = "aentry-post__text";
-					break;
-				case 2:
-					TagName = "b-singlepost-body";
-					break;
-				default:
-					StopCollection(false);
-					return;
-			}
+			string script = @"(function() {{
+var articles = document.getElementsByClassName('aentry-post__text');
+if (articles.length < 1)
+	articles = document.getElementsByClassName('b-singlepost-body');
+if (articles.length < 1)
+	return ''
+var theResultText = '<div class=""result-article"">' + articles[0].innerHTML; + '</div>';
+document.body.innerHTML = theResultText;
+var ljsales = document.getElementsByClassName('ljsale');
+for (var i = 0; i < ljsales.length; i++)
+	ljsales[i].parentNode.removeChild(ljsales[i]);
+var ljlikes = document.getElementsByClassName('lj-like');
+for (var j = 0; j < ljlikes.length; j++)
+	ljlikes[j].parentNode.removeChild(ljlikes[j]);
+return document.getElementsByClassName('result-article')[0].innerHTML;
+ }} )();";
 
-			string script = string.Format("(function() {{ var x = document.getElementsByClassName('{0}'); return x.length > 0 ? x[0].innerHTML : '';}} )();", TagName);
 			var task = browser.EvaluateScriptAsync(script);
 			await task.ContinueWith(t =>
 			{
@@ -488,33 +482,21 @@ namespace LJ2Book.Download
 				{
 					var response = t.Result;
 					ti.article.RawBody = response.Success ? response.Result.ToString() : string.Empty;
-					if (ti.article.RawBody.Length == 0)
-						ExtractArticleBody(tagNo + 1);
-					else
-						ExtractImageList(1);
+					ExtractImageList();
 				}
 				else
 					StopCollection(false);
 			});
 		}
 		private string[] Images;
-		private async void ExtractImageList(int tagNo)
+		private async void ExtractImageList()
 		{
-			string TagName = string.Empty;
-			switch (tagNo)
-			{
-				case 1:
-					TagName = "aentry-post__text";
-					break;
-				case 2:
-					TagName = "b-singlepost-body";
-					break;
-				default:
-					StopCollection();
-					return;
-			}
-
-			string script = string.Format("(function() {{ var imgs = document.getElementsByClassName('{0}')[0].getElementsByTagName('img'); var sImgs = '&'; for (var i = 0; i < imgs.length; i++) {{ sImgs += (imgs[i].src + '&');}} return sImgs;}} )();", TagName);
+			string script = @"(function() {{
+var imgs = document.getElementsByTagName('img');
+var sImgs = '&';
+for (var i = 0; i < imgs.length; i++)
+	sImgs += (imgs[i].src + '&');
+return sImgs;}} )();";
 
 			var task = browser.EvaluateScriptAsync(script);
 			await task.ContinueWith(t =>
@@ -531,10 +513,8 @@ namespace LJ2Book.Download
 								result.Add(s);
 						Images = result.ToArray();
 						string resultStr = string.Join("\r\n", EvaluateJavaScriptResult.ToString().Split('&'));
-						DownloadPictures();
 					}
-					else
-						ExtractImageList(tagNo + 1);
+					DownloadPictures();
 				}
 				else
 					StopCollection(false);
@@ -543,7 +523,7 @@ namespace LJ2Book.Download
 		private List<Picture> Pictures = new List<Picture>();
 		private void DownloadPictures()
 		{
-			if (Images.Count() > 0)
+			if (Images != null && Images.Count() > 0)
 			{
 				App.db.Pictures.Load();
 				string[] ImagesToLoad = Images.Except((from p in App.db.Pictures select p.Url).ToArray()).ToArray();
@@ -608,11 +588,6 @@ namespace LJ2Book.Download
 			Debug.WriteLine(string.Format("Thread {0}: SavePageToDB: succeed = {1}, url = '{2}'", Thread.CurrentThread.ManagedThreadId, Success.ToString(), ti.article.Url));
 			ti.task.SaveArticleDetails(ti.article, Pictures);
 			ti.task.Step2();
-			//syncContext.Post(new SendOrPostCallback((o) =>
-			//{
-			//	Article.State = Success ? ArticleState.Ready : ArticleState.FailedToProcess;
-			//	downloadManager.SaveArticleDetails(Article, Pictures);
-			//}), null);
 		}
 	}
 }

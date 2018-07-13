@@ -50,10 +50,10 @@ namespace TryShowPage
 			//TextAddress = @"https://testdev666.livejournal.com/552.html";// article 1: 2 pics with cut
 			//TextAddress = @"https://testdev666.livejournal.com/919.html";// article 3: hidden
 			//TextAddress = @"https://testdev666.livejournal.com/1274.html";// article 4: hidden
-			//TextAddress = @"https://testdev666.livejournal.com/1496.html";// article 5: with youtube
+			TextAddress = @"https://testdev666.livejournal.com/1496.html";// article 5: with youtube
 			//TextAddress = @"file:///D:/1496_full.html";
 			//TextAddress = @"file:///D:/test_png.html";
-			TextAddress = @"https://evo-lutio.livejournal.com/32020.html";// evo-lutio: Физкультура
+			//TextAddress = @"https://evo-lutio.livejournal.com/32020.html";// evo-lutio: Физкультура
 
 			ti = new Stage2TaskInfo();
 			ti.article = new Article
@@ -83,25 +83,11 @@ namespace TryShowPage
 			browser = new ChromiumWebBrowser();
 			browser.BrowserInitialized += Browser_BrowserInitialized;
 			browser.FrameLoadEnd += Browser_FrameLoadEnd;
-			//browser.FrameLoadStart += Browser_FrameLoadStart;
-			//ILoadHandler handler = browser.LoadHandler;
-			//handler.OnFrameLoadStart()
-			
 		}
-
-		//private void Browser_FrameLoadStart(object sender, FrameLoadStartEventArgs e)
-		//{
-		//	Debug.WriteLine("ThreadID = {0}, Browser_FrameLoadStart TransitionType={1} '{2}'", Thread.CurrentThread.ManagedThreadId, e.TransitionType.ToString(), e.Url);
-		//	if (e.Url.Contains("rubiconproject.com"))
-		//		e.Frame.Delete();
-		//	//throw new NotImplementedException();
-		//}
 
 		private void Browser_BrowserInitialized(object sender, EventArgs e)
 		{
 			Debug.WriteLine("ThreadID = {0}, Browser_BrowserInitialized", Thread.CurrentThread.ManagedThreadId);
-			//browser.RegisterResourceHandler("1.png", msProxyPngImage, ResourceHandler.GetMimeType(".png"));
-			//ILoadHandler
 			browser.Load(TextAddress);
 		}
 		private void Browser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
@@ -143,46 +129,20 @@ namespace TryShowPage
 		Stage2TaskInfo ti;
 		private void BeginProcessPage()
 		{
-			ClearRedundantTags();
+			ExtractArticleTitle();
 		}
-		private async void ClearRedundantTags()
+		private async void ExtractArticleTitle()
 		{
-			string script = "(function() {{ " +
-				"var ljsales = document.getElementsByClassName('ljsale'); for (var i = 0; i < ljsales.length; i++) ljsales[i].parentNode.removeChild(ljsales[i]);" +
-				"var ljlikes = document.getElementsByClassName('lj-like'); for (var j = 0; j < ljlikes.length; j++) ljlikes[j].parentNode.removeChild(ljlikes[j]);" +
-				"var ljsales_inner = document.getElementsByClassName('xhtml_banner'); for (var k = 0; k < ljsales_inner.length; k++) ljsales_inner[k].parentNode.removeChild(ljsales_inner[k]);" +
-				" }} )();";
-			var task = browser.EvaluateScriptAsync(script);
-			await task.ContinueWith(t =>
-			{
-				if (!t.IsFaulted)
-				{
-					var response = t.Result;
-					//ti.article.RawTitle = response.Success ? response.Result.ToString().Trim() : string.Empty;
-				}
-				ExtractArticleTitle(1);
-			});
+			string script = @"(function() {{
+var tittles = document.getElementsByClassName('aentry-post__title-text');
+if (tittles.length < 1)
+	tittles = document.getElementsByClassName('entry-title');
+if (tittles.length > 0) 
+	return tittles[0].innerHTML;
+else
+	return ''
+ }} )();";
 
-			//ExtractArticleTitle(1);
-		}
-
-		private async void ExtractArticleTitle(int tagNo)
-		{
-			string TagName = string.Empty;
-			switch (tagNo)
-			{
-				case 1:
-					TagName = "aentry-post__title-text";
-					break;
-				case 2:
-					TagName = "entry-title";
-					break;
-				default:
-					ExtractArticleBody(1);
-					return;
-			}
-
-			string script = string.Format("(function() {{ var x = document.getElementsByClassName('{0}'); return x.length > 0 ? x[0].innerHTML : '';}} )();", TagName);
 			var task = browser.EvaluateScriptAsync(script);
 			await task.ContinueWith(t =>
 			{
@@ -190,35 +150,32 @@ namespace TryShowPage
 				{
 					var response = t.Result;
 					ti.article.RawTitle = response.Success ? response.Result.ToString().Trim() : string.Empty;
-					if (ti.article.RawTitle.Length == 0)
-						ExtractArticleTitle(tagNo + 1);
-					else
-						ExtractArticleBody(1);
+					ExtractArticleBody();
 				}
 				else
 					StopCollection(false);
 			});
 		}
-		private string ResultTag = string.Empty;
-		private async void ExtractArticleBody(int tagNo)
+		private async void ExtractArticleBody()
 		{
-			string TagName = string.Empty;
-			switch (tagNo)
-			{
-				case 1:
-					TagName = "aentry-post__text";
-					break;
-				case 2:
-					TagName = "b-singlepost-body";
-					break;
-				default:
-					ResultTag = string.Empty;
-					StopCollection(false);
-					return;
-			}
-			ResultTag = TagName;
 
-			string script = string.Format("(function() {{ var x = document.getElementsByClassName('{0}'); return x.length > 0 ? x[0].innerHTML : '';}} )();", TagName);
+			string script = @"(function() {{
+var articles = document.getElementsByClassName('aentry-post__text');
+if (articles.length < 1)
+	articles = document.getElementsByClassName('b-singlepost-body');
+if (articles.length < 1)
+	return ''
+var theResultText = '<div class=""result-article"">' + articles[0].innerHTML; + '</div>';
+document.body.innerHTML = theResultText;
+var ljsales = document.getElementsByClassName('ljsale');
+for (var i = 0; i < ljsales.length; i++)
+	ljsales[i].parentNode.removeChild(ljsales[i]);
+var ljlikes = document.getElementsByClassName('lj-like');
+for (var j = 0; j < ljlikes.length; j++)
+	ljlikes[j].parentNode.removeChild(ljlikes[j]);
+return document.getElementsByClassName('result-article')[0].innerHTML;
+ }} )();";
+
 			var task = browser.EvaluateScriptAsync(script);
 			await task.ContinueWith(t =>
 			{
@@ -226,33 +183,23 @@ namespace TryShowPage
 				{
 					var response = t.Result;
 					ti.article.RawBody = response.Success ? response.Result.ToString() : string.Empty;
-					if (ti.article.RawBody.Length == 0)
-						ExtractArticleBody(tagNo + 1);
-					else
-						ExtractImageList(1);
+					ExtractImageList();
 				}
 				else
 					StopCollection(false);
 			});
 		}
-		private async void ExtractImageList(int tagNo)
+		private async void ExtractImageList()
 		{
-			string TagName = string.Empty;
-			switch (tagNo)
-			{
-				case 1:
-					TagName = "aentry-post__text";
-					break;
-				case 2:
-					TagName = "b-singlepost-body";
-					break;
-				default:
-					//StopCollection();
-					DownloadPictures();
-					return;
-			}
-
-			string script = string.Format("(function() {{ var imgs = document.getElementsByClassName('{0}')[0].getElementsByTagName('img'); var sImgs = '&'; for (var i = 0; i < imgs.length; i++) {{ sImgs += (imgs[i].src + '&');}} return sImgs;}} )();", TagName);
+			//var articles = document.getElementsByClassName('aentry-post__text');
+			//if (articles.length < 1) articles = document.getElementsByClassName('b-singlepost-body');
+			//if (articles.length < 1) return ''
+			string script = @"(function() {{
+var imgs = document.getElementsByTagName('img');
+var sImgs = '&';
+for (var i = 0; i < imgs.length; i++)
+	sImgs += (imgs[i].src + '&');
+return sImgs;}} )();";
 
 			var task = browser.EvaluateScriptAsync(script);
 			await task.ContinueWith(t =>
@@ -260,23 +207,22 @@ namespace TryShowPage
 				if (!t.IsFaulted)
 				{
 					var response = t.Result;
-					var EvaluateJavaScriptResult = response.Success ? (response.Result ?? "null") : response.Message;
+					var resultFromJs = response.Success ? (response.Result ?? "null") : response.Message;
 					if (response.Success)
 					{
 						List<string> result = new List<string>();
-						foreach (var s in EvaluateJavaScriptResult.ToString().Split('&'))
+						foreach (var s in resultFromJs.ToString().Split('&'))
 							if (s.Length > 0)
 								result.Add(s);
 						Images = result.ToArray();
-						string resultStr = string.Join("\r\n", EvaluateJavaScriptResult.ToString().Split('&'));
-						DownloadPictures();
+						string resultStr = string.Join("\r\n", resultFromJs.ToString().Split('&'));
 					}
-					else
-						ExtractImageList(tagNo + 1);
+					DownloadPictures();
 				}
 				else
 					StopCollection(false);
 			});
+
 		}
 		private void DownloadPictures()
 		{
@@ -301,9 +247,7 @@ namespace TryShowPage
 			//var factory = browser.ResourceHandlerFactory;
 			//if (factory == null)
 			//	return;
-			string response = "<!DOCTYPE html>"
-				+ "<head><meta charset=\"utf-8\"></head>"
-				+ "<body>"
+			string response = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n\t<meta charset=\"utf-8\">\r\n</head>\r\n<body background='#FFFFFF'>\r\n"
 				+ "<h1>"
 				+ Title
 				+ "</h1>"

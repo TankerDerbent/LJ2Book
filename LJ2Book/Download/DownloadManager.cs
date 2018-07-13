@@ -487,9 +487,9 @@ return document.getElementsByClassName('result-article')[0].innerHTML;
 		{
 			string script = @"(function() {{
 var imgs = document.getElementsByTagName('img');
-var sImgs = '&';
+var sImgs = ' ';
 for (var i = 0; i < imgs.length; i++)
-	sImgs += (imgs[i].src + '&');
+	sImgs += (imgs[i].src + ' ');
 return sImgs;}} )();";
 
 			var task = browser.EvaluateScriptAsync(script);
@@ -502,11 +502,10 @@ return sImgs;}} )();";
 					if (response.Success)
 					{
 						List<string> result = new List<string>();
-						foreach (var s in EvaluateJavaScriptResult.ToString().Split('&'))
+						foreach (var s in EvaluateJavaScriptResult.ToString().Split(' '))
 							if (s.Length > 0)
 								result.Add(s);
 						Images = result.ToArray();
-						string resultStr = string.Join("\r\n", EvaluateJavaScriptResult.ToString().Split('&'));
 					}
 					DownloadPictures();
 				}

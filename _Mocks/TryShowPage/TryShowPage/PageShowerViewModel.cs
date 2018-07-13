@@ -50,10 +50,11 @@ namespace TryShowPage
 			//TextAddress = @"https://testdev666.livejournal.com/552.html";// article 1: 2 pics with cut
 			//TextAddress = @"https://testdev666.livejournal.com/919.html";// article 3: hidden
 			//TextAddress = @"https://testdev666.livejournal.com/1274.html";// article 4: hidden
-			TextAddress = @"https://testdev666.livejournal.com/1496.html";// article 5: with youtube
+			//TextAddress = @"https://testdev666.livejournal.com/1496.html";// article 5: with youtube
 			//TextAddress = @"file:///D:/1496_full.html";
 			//TextAddress = @"file:///D:/test_png.html";
 			//TextAddress = @"https://evo-lutio.livejournal.com/32020.html";// evo-lutio: Физкультура
+			TextAddress = @"https://evo-lutio.livejournal.com/47545.html";
 
 			ti = new Stage2TaskInfo();
 			ti.article = new Article
@@ -196,9 +197,9 @@ return document.getElementsByClassName('result-article')[0].innerHTML;
 			//if (articles.length < 1) return ''
 			string script = @"(function() {{
 var imgs = document.getElementsByTagName('img');
-var sImgs = '&';
+var sImgs = ' ';
 for (var i = 0; i < imgs.length; i++)
-	sImgs += (imgs[i].src + '&');
+	sImgs += (imgs[i].src + ' ');
 return sImgs;}} )();";
 
 			var task = browser.EvaluateScriptAsync(script);
@@ -211,11 +212,11 @@ return sImgs;}} )();";
 					if (response.Success)
 					{
 						List<string> result = new List<string>();
-						foreach (var s in resultFromJs.ToString().Split('&'))
+						foreach (var s in resultFromJs.ToString().Split(' '))
 							if (s.Length > 0)
 								result.Add(s);
 						Images = result.ToArray();
-						string resultStr = string.Join("\r\n", resultFromJs.ToString().Split('&'));
+						string resultStr = string.Join("\r\n", resultFromJs.ToString().Split(' '));
 					}
 					DownloadPictures();
 				}

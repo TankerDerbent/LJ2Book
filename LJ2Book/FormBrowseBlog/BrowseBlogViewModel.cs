@@ -83,7 +83,10 @@ namespace LJ2Book.FormBrowseBlog
 					}
 				}
 			}
-			//sb.Append("<script type=\"text/javascript\">var ljsales = document.getElementsByClassName('ljsale'); for (var i = 0; i < ljsales.length; i++) ljsales[i].parentNode.removeChild(ljsales[i]);</script>");
+			sb.Append("<script type=\"text/javascript\">");
+			sb.Append(LiveJournalAPI.JavascriptTexts.ScrollNextA);
+			sb.Append(LiveJournalAPI.JavascriptTexts.ScrollPrevA);
+			sb.Append("</script>");
 			sb.Append("\r\n</body>\r\n</html>");
 			_TextToShow = sb.ToString();
 		}
@@ -163,9 +166,13 @@ namespace LJ2Book.FormBrowseBlog
 			if (resultTags.Count() > 0)
 			{
 				while (resultTags[0].Length == 0)
+				{
 					resultTags = resultTags.Skip(1).ToArray();
+					if (resultTags.Count() == 0)
+						break;
+				}
 
-				foreach (var s in resultTags)
+					foreach (var s in resultTags)
 					Tags.Add(new TagItem { Name = s });
 			}
 			TagsList = Tags;
@@ -273,39 +280,11 @@ namespace LJ2Book.FormBrowseBlog
 		public ICommand PrevArticle { get => new BaseCommand(() => ScrollToPrevArticle()); }
 		private async void ScrollToPrevArticle()
 		{
-			string script = @"
-var nPageYOffset = window.pageYOffset;
-var labels = document.getElementsByTagName('a');
-var len = labels.length;
-for(var i = len - 1; i >= 0; i--)
-{
-	var labelOffset = labels[i].offsetTop;
-	if (labelOffset < nPageYOffset)
-	{
-		window.scrollTo(0, labelOffset);
-		break;
-	}
-}
-";
-			await (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog.browser.EvaluateScriptAsync(script);
+			await (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog.browser.EvaluateScriptAsync("ScrollPrevA();");
 		}
 		private async void ScrollToNextLabel()
 		{
-			string script = @"
-var nPageYOffset = window.pageYOffset;
-var labels = document.getElementsByTagName('a');
-var len = labels.length;
-for(var i = 1; i < len; i++)
-{
-	var labelOffset = labels[i].offsetTop;
-	if (labelOffset > nPageYOffset)
-	{
-		window.scrollTo(0, labelOffset);
-		break;
-	}
-}
-";
-			await (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog.browser.EvaluateScriptAsync(script);
+			await (Application.Current.MainWindow as MainWindow).ctrlBrowseBlog.browser.EvaluateScriptAsync("ScrollNextA();");
 		}
 		public ICommand ShowSelectedArticle { get => new BaseCommand(x => _ShowSelectedArticle(x as ArticleWrapper)); }
 		private bool SingleSelection = false;

@@ -37,39 +37,41 @@ namespace TryShowBlocks
 
 		private async void ScrollToPrevArticle()
 		{
-			string script = @"
-var nPageYOffset = window.pageYOffset;
-var labels = document.getElementsByTagName('a');
-var len = labels.length;
-for(var i = len - 1; i >= 0; i--)
-{
-	var labelOffset = labels[i].offsetTop;
-	if (labelOffset < nPageYOffset)
-	{
-		window.scrollTo(0, labelOffset);
-		break;
-	}
-}
-";
+			//			string script = @"
+			//var nPageYOffset = window.pageYOffset;
+			//var labels = document.getElementsByTagName('a');
+			//var len = labels.length;
+			//for(var i = len - 1; i >= 0; i--)
+			//{
+			//	var labelOffset = labels[i].offsetTop;
+			//	if (labelOffset < nPageYOffset)
+			//	{
+			//		window.scrollTo(0, labelOffset);
+			//		break;
+			//	}
+			//}
+			//";
+			string script = "goPrev();";
 			await (Application.Current.MainWindow as MainWindow).browser.EvaluateScriptAsync(script);
 		}
 
 		private async void ScrollToNextLabel()
 		{
-			string script = @"
-var nPageYOffset = window.pageYOffset;
-var labels = document.getElementsByTagName('a');
-var len = labels.length;
-for(var i = 1; i < len; i++)
-{
-	var labelOffset = labels[i].offsetTop;
-	if (labelOffset > nPageYOffset)
-	{
-		window.scrollTo(0, labelOffset);
-		break;
-	}
-}
-";
+			//			string script = @"
+			//var nPageYOffset = window.pageYOffset;
+			//var labels = document.getElementsByTagName('a');
+			//var len = labels.length;
+			//for(var i = 1; i < len; i++)
+			//{
+			//	var labelOffset = labels[i].offsetTop;
+			//	if (labelOffset > nPageYOffset)
+			//	{
+			//		window.scrollTo(0, labelOffset);
+			//		break;
+			//	}
+			//}
+			//";
+			string script = "goNext();";
 			await (Application.Current.MainWindow as MainWindow).browser.EvaluateScriptAsync(script);
 		}
 		public bool IsReverseSorting
@@ -135,6 +137,39 @@ for(var i = 1; i < len; i++)
 				sb.Append(a.RawBody);
 				sb.Append("\r\n");
 			}
+			sb.Append("<script type=\"text/javascript\">");
+			sb.Append(@"
+function goPrev() {
+	var nPageYOffset = window.pageYOffset;
+	var labels = document.getElementsByTagName('a');
+	var len = labels.length;
+	for(var i = len - 1; i >= 0; i--)
+	{
+		var labelOffset = labels[i].offsetTop;
+		if (labelOffset < nPageYOffset)
+		{
+			window.scrollTo(0, labelOffset);
+			break;
+		}
+	}
+}
+
+function goNext() {
+	var nPageYOffset = window.pageYOffset;
+	var labels = document.getElementsByTagName('a');
+	var len = labels.length;
+	for(var i = 1; i < len; i++)
+	{
+		var labelOffset = labels[i].offsetTop;
+		if (labelOffset > nPageYOffset)
+		{
+			window.scrollTo(0, labelOffset);
+			break;
+		}
+	}
+}
+");
+			sb.Append("</script>");
 			sb.Append("\r\n</body>\r\n</html>");
 			_TextToShow = sb.ToString();
 		}

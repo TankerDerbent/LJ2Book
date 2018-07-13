@@ -193,7 +193,6 @@ namespace LJ2Book.Download
 
 			public void SaveArticleDetails(Article article, List<Picture> pictures)
 			{
-				Debug.WriteLine(string.Format("Semaphore: Release -1"));
 				semaphore.Release();
 				SyncContext.Post(new SendOrPostCallback(o =>
 				{
@@ -217,7 +216,7 @@ namespace LJ2Book.Download
 			}
 		}
 		private List<BlogSynchronizationTask> Tasks = new List<BlogSynchronizationTask>();
-		private object tasksSyncObject = new object();
+		private readonly object tasksSyncObject = new object();
 		public void AddSyncTask(BlogSynchronizationTask task)
 		{
 			lock (tasksSyncObject)
@@ -250,40 +249,6 @@ namespace LJ2Book.Download
 
 			CollectStage1Info(task);
 		}
-		//public void SyncBlog(Blog _blog)
-		//{
-		//	if (cnn == null || !cnn.CheckConnection())
-		//		throw new InvalidOperationException("lj connection error");
-
-		//	int LastEventNo = -1;
-		//	lock (cnnSyncObject)
-		//		LastEventNo = cnn.GetLastEventNo(_blog.User.UserName);
-
-		//	if (LastEventNo < 0)
-		//	{
-		//		MessageBox.Show("Some error, possible client locked");
-		//		return;
-		//	}
-
-		//	Blog blog;
-		//	lock (App.dbLock)
-		//	{
-		//		blog = App.db.Blogs.Find(_blog.UserBlogID);
-		//		bool NeedUpdate = LastEventNo > blog.LastItemNo;
-		//		blog.LastItemNo = LastEventNo;
-		//		blog.LastSync = DateTime.Now;
-		//		App.db.Entry(blog).State = EntityState.Modified;
-		//		App.db.SaveChanges();
-		//	}
-		//	if (BlogInfoArrived != null)
-		//		BlogInfoArrived(blog.LastItemNo, blog.LastSync);
-
-		//	if (blog.KindOfSynchronization == KindOfSynchronization.Auto)
-		//		SyncBlog2(blog);
-		//}
-		//public delegate void OnBlogInfoArrived(int lastItemNo, DateTime dateLastSync);
-		//public event OnBlogInfoArrived BlogInfoArrived;
-
 		private void CollectStage1Info(BlogSynchronizationTask task)
 		{
 			int[] ItemNumbersToSync = task.GetItemNumbersToSync();
@@ -335,7 +300,7 @@ namespace LJ2Book.Download
 						n += 1;
 					}
 					Articles.Add(article);
-					if (n > 20)
+					if (n > 150)
 						break;
 				}
 				catch (FailedToGetEventByNoException e)
@@ -353,7 +318,6 @@ namespace LJ2Book.Download
 			int NumberItemsToDownload = articlesToDownload.Length;
 			task.ProgressMax2 = NumberItemsToDownload;
 
-			//Debug.WriteLine(string.Format("Semaphore: Create and lock +{0}", BlogSynchronizationTask.DOWNLOAD_THREADS));
 			task.semaphore = new Semaphore(0, BlogSynchronizationTask.DOWNLOAD_THREADS);
 			do
 			{
@@ -364,16 +328,11 @@ namespace LJ2Book.Download
 					ThreadPool.QueueUserWorkItem(Stage3Processor.DownloadThread, s2ti);
 					diList.RemoveAt(0);
 				}
-				//Debug.WriteLine(string.Format("Semaphore: ctrl Release -{0}", Limit));
 				task.semaphore.Release(Limit);
 				Thread.Sleep(100);
 
 				for (int i = 0; i < Limit; i++)
-				{
-					//Debug.WriteLine(string.Format("Semaphore: ctrl Wait..."));
 					task.semaphore.WaitOne();
-					//Debug.WriteLine(string.Format("Semaphore: ctrl Lock +1"));
-				}
 			}
 			while (diList.Count > 0);
 			task.EndSynchronization();
@@ -384,7 +343,6 @@ namespace LJ2Book.Download
 			public BlogSynchronizationTask task;
 		}
 	}
-
 	class Stage3Processor
 	{
 		public static void DownloadThread(Object _ti)
@@ -393,12 +351,9 @@ namespace LJ2Book.Download
 				return;
 
 			DownloadManager.Stage2TaskInfo ti = (DownloadManager.Stage2TaskInfo)_ti;
-
-			Debug.WriteLine(string.Format("Semaphore: dw thread Wait..."));
 			ti.task.semaphore.WaitOne();
-			Debug.WriteLine(string.Format("Semaphore: dw thread Lock +1"));
 
-			Debug.WriteLine("Task started for item No {0}: lock semaphore", ti.article.ArticleNo);
+			Debug.WriteLine("Task started for item No {0}, lock semaphore", ti.article.ArticleNo);
 
 			Stage3Processor loaderStage3 = new Stage3Processor(ti);
 		}
@@ -427,17 +382,7 @@ namespace LJ2Book.Download
 		}
 		private async void ExtractArticleTitle()
 		{
-			string script = @"(function() {{
-var tittles = document.getElementsByClassName('aentry-post__title-text');
-if (tittles.length < 1)
-	tittles = document.getElementsByClassName('entry-title');
-if (tittles.length > 0) 
-	return tittles[0].innerHTML;
-else
-	return ''
- }} )();";
-
-			var task = browser.EvaluateScriptAsync(script);
+			var task = browser.EvaluateScriptAsync(LiveJournalAPI.JavascriptTexts.ExtractArticleTitle);
 			await task.ContinueWith(t =>
 			{
 				if (!t.IsFaulted)
@@ -452,24 +397,7 @@ else
 		}
 		private async void ExtractArticleBody()
 		{
-			string script = @"(function() {{
-var articles = document.getElementsByClassName('aentry-post__text');
-if (articles.length < 1)
-	articles = document.getElementsByClassName('b-singlepost-body');
-if (articles.length < 1)
-	return ''
-var theResultText = '<div class=""result-article"">' + articles[0].innerHTML; + '</div>';
-document.body.innerHTML = theResultText;
-var ljsales = document.getElementsByClassName('ljsale');
-for (var i = 0; i < ljsales.length; i++)
-	ljsales[i].parentNode.removeChild(ljsales[i]);
-var ljlikes = document.getElementsByClassName('lj-like');
-for (var j = 0; j < ljlikes.length; j++)
-	ljlikes[j].parentNode.removeChild(ljlikes[j]);
-return document.getElementsByClassName('result-article')[0].innerHTML;
- }} )();";
-
-			var task = browser.EvaluateScriptAsync(script);
+			var task = browser.EvaluateScriptAsync(LiveJournalAPI.JavascriptTexts.ExtractArticleBody);
 			await task.ContinueWith(t =>
 			{
 				if (!t.IsFaulted)
@@ -485,14 +413,7 @@ return document.getElementsByClassName('result-article')[0].innerHTML;
 		private string[] Images;
 		private async void ExtractImageList()
 		{
-			string script = @"(function() {{
-var imgs = document.getElementsByTagName('img');
-var sImgs = ' ';
-for (var i = 0; i < imgs.length; i++)
-	sImgs += (imgs[i].src + ' ');
-return sImgs;}} )();";
-
-			var task = browser.EvaluateScriptAsync(script);
+			var task = browser.EvaluateScriptAsync(LiveJournalAPI.JavascriptTexts.ExtractImageList);
 			await task.ContinueWith(t =>
 			{
 				if (!t.IsFaulted)

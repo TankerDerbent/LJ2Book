@@ -126,6 +126,7 @@
       <DependentUpon>LoginControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="FormLogin\LoginViewModel.cs" />
+    <Compile Include="LiveJournalAPI\JavascriptTexts.cs" />
     <Compile Include="LiveJournalAPI\Loggers.cs" />
     <Compile Include="LiveJournalAPI\ResponceProcessor.cs" />
     <Compile Include="LiveJournalAPI\Server.cs" />

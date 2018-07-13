@@ -12,7 +12,6 @@ namespace LJ2Book.FormBrowseStorage
 		public BrowseStorageControl()
 		{
 			InitializeComponent();
-			//this.DataContextChanged += BrowseStorageControl_DataContextChanged;
 		}
 
 		private void BrowseStorageControl_DataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)

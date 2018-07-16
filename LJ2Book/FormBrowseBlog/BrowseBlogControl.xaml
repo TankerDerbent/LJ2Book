@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:LJ2Book.FormBrowseBlog"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
 			 xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:simpleforms="clr-namespace:LJ2Book.SimpleForms"
 			 xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="900">
@@ -135,7 +136,7 @@
         </Grid.RowDefinitions>
 		<DockPanel Grid.Row="0" LastChildFill="True">
 			<StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-				<toolkit:WatermarkTextBox Watermark="Search by text" Text="{Binding TextToSearch}" MaxWidth="200" VerticalContentAlignment="Center" TextAlignment="Left" Margin="3" MinWidth="200" />
+				<simpleforms:ucTextBoxWithDelButton x:Name="searchText" Width="200" Text="{Binding TextToSearch, Mode=TwoWay}" CommandDelete="{Binding ClearSearchWords}" CommandEnter="{Binding DoSearch}" IsReadOnly="False" />
 				<Button Content="Refresh" VerticalAlignment="Center" Margin="0,3,3,3" MinWidth="80" Command="{Binding DoSearch}" Height="24" />
 				<CheckBox Content="Hide Private Records" VerticalAlignment="Center" Margin="0,3,3,3" IsChecked="{Binding DoNotShowHiddenArticles}" />
 				<ToggleButton Content="{Binding ToggleSortText}" Margin="0,3,3,3" MinWidth="100" IsChecked="{Binding IsReverseSorting}" />

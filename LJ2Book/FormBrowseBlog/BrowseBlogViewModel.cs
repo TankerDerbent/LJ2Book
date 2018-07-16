@@ -31,6 +31,7 @@ namespace LJ2Book.FormBrowseBlog
 					SwitchToText(Articles);
 			}
 		}
+		public ICommand ClearSearchWords { get => new BaseCommand(() => { TextToSearch = string.Empty; FilterChanged(); }); }
 		public string ToggleSortText { get => _isReverseSorting ? "Sort ASC" : "Sort DESC"; }
 		private void SortContent()
 		{
@@ -51,7 +52,7 @@ namespace LJ2Book.FormBrowseBlog
 		private void BuildTextAndPreparePictures(List<ArticleWrapper> _articles)
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.Append("<!DOCTYPE html>\r\n<html>\r\n<head>\r\n\t<meta charset=\"utf-8\">\r\n</head>\r\n<body background='#FFFFFF'>\r\n");
+			sb.Append("<!DOCTYPE html>\r\n<html>\r\n<head>\r\n\t<meta charset=\"utf-8\">\r\n</head>\r\n<body bgcolor='#FFFFFF'>\r\n");
 			int LabelNo = 1;
 			_CachedImages = new List<CachedImage>();
 			Regex rxImageTag = new Regex("<img[^<]*>", RegexOptions.IgnoreCase | RegexOptions.Singleline);

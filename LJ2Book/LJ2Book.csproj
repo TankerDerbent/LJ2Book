@@ -137,6 +137,9 @@
       <DependentUpon>ucHeaderWin10Style.xaml</DependentUpon>
     </Compile>
     <Compile Include="SimpleForms\ucHeaderWin10StyleVM.cs" />
+    <Compile Include="SimpleForms\ucTextBoxWithDelButton.xaml.cs">
+      <DependentUpon>ucTextBoxWithDelButton.xaml</DependentUpon>
+    </Compile>
     <Page Include="FormBrowseBlog\BrowseBlogControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -180,6 +183,10 @@
     <Page Include="SimpleForms\ucHeaderWin10Style.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="SimpleForms\ucTextBoxWithDelButton.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>

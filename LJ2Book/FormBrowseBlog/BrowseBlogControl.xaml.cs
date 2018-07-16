@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,7 +25,15 @@ namespace LJ2Book.FormBrowseBlog
         public BrowseBlogControl()
         {
             InitializeComponent();
+
+			browser.FrameLoadEnd += Browser_FrameLoadEnd;
         }
+
+		private void Browser_FrameLoadEnd(object sender, CefSharp.FrameLoadEndEventArgs e)
+		{
+			Debug.WriteLine("BrowseBlogControl.Browser_FrameLoadEnd, frame = " + e.Url);
+		}
+
 		//private bool PanelOpened = false;
 		private void ButtonSelectTags_Click(object sender, RoutedEventArgs e)
 		{

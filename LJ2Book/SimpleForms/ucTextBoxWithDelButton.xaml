@@ -58,7 +58,7 @@
 			<Setter Property="Padding" Value="4,0,25,0" />
 			<Setter Property="Height" Value="21" />
 			<Setter Property="IsTabStop" Value="False" />
-			<Setter Property="IsReadOnly" Value="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}" />
+			<!--<Setter Property="IsReadOnly" Value="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}" />-->
 			<Setter Property="VerticalAlignment" Value="Center" />
 			<Setter Property="VerticalContentAlignment" Value="Center" />
 			<Setter Property="BorderThickness" Value="0" />

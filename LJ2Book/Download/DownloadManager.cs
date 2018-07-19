@@ -47,7 +47,9 @@ namespace LJ2Book.Download
 
 			private SynchronizationContext SyncContext;
 			public Blog blog { get; set; }
-			public const int DOWNLOAD_THREADS = 30;
+			public const int DOWNLOAD_THREADS = 4;
+			public const int MAX_EVENTS_TO_COLLECT = 250;
+			public const int MAX_ARTICLES_TO_DOWNLOAD = 25;
 			public Semaphore semaphore;
 			public BlogSynchronizationTask(SynchronizationContext _SyncContext, Blog _blog)
 			{
@@ -205,7 +207,10 @@ namespace LJ2Book.Download
 							context.SaveChanges();
 							if (pictures != null)
 							{
-								foreach (var p in pictures)
+								//App.db.Pictures.Load();
+								string[] urls = (from p in App.db.Pictures select p.Url).ToArray();
+								var qryPictures = (from p in pictures where !urls.Contains(p.Url) select p);
+								foreach (var p in qryPictures)
 									context.Pictures.Add(p);
 								context.SaveChanges();
 							}
@@ -270,6 +275,7 @@ namespace LJ2Book.Download
 
 			List<Stage2TaskInfo> diList = new List<Stage2TaskInfo>();
 			List<Article> Articles = new List<Article>();
+#if false
 			int n = 0;
 			foreach (var i in ItemNumbersToSync)
 			{
@@ -300,7 +306,7 @@ namespace LJ2Book.Download
 						n += 1;
 					}
 					Articles.Add(article);
-					if (n > 150)
+					if (n > BlogSynchronizationTask.MAX_EVENTS_TO_COLLECT)
 						break;
 				}
 				catch (FailedToGetEventByNoException e)
@@ -312,8 +318,8 @@ namespace LJ2Book.Download
 			}
 
 			task.SaveArticlesToDB(Articles);
-
-			Article[] articlesToDownload = task.GetArticlesToLoad();
+#endif
+			Article[] articlesToDownload = task.GetArticlesToLoad().ToList().Take(BlogSynchronizationTask.MAX_ARTICLES_TO_DOWNLOAD).ToArray();
 
 			int NumberItemsToDownload = articlesToDownload.Length;
 			task.ProgressMax2 = NumberItemsToDownload;
@@ -439,7 +445,7 @@ namespace LJ2Book.Download
 		{
 			if (Images != null && Images.Count() > 0)
 			{
-				App.db.Pictures.Load();
+				//App.db.Pictures.Load();
 				string[] ImagesToLoad = Images.Except((from p in App.db.Pictures select p.Url).ToArray()).ToArray();
 				foreach (var url in ImagesToLoad)
 				{

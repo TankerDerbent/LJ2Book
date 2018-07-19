@@ -93,9 +93,9 @@ namespace LJ2Book.FormBrowseStorage
 			{
 				switch (_Stage)
 				{
-					case 1: return "Stage 1: gathering general info...";
-					case 2: return "Stage 2: listing articles..";
-					case 3: return "Stage 3: downloading articles..";
+					case 1: return "Stage 1 of 3: gathering general info...";
+					case 2: return "Stage 2 of 3: listing articles..";
+					case 3: return "Stage 3 of 3: downloading articles..";
 				}
 				return string.Empty;
 			}

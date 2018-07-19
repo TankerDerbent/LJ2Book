@@ -66,8 +66,7 @@
 	</UserControl.Resources>
     <Grid>
 		<toolkit:WatermarkTextBox Style="{StaticResource InputFieldStyle}" Watermark="Search by text" KeyDown="TxtValue_KeyDown"
-			Text="{Binding Path=Text, RelativeSource={RelativeSource AncestorType=UserControl}, 
-			UpdateSourceTrigger=PropertyChanged}"  />
+			Text="{Binding Path=Text, RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}"  />
 		<Button Name="DelButton" Style="{StaticResource DelButtonStyle}" Click="DelButton_Click" />
 	</Grid>
 </UserControl>

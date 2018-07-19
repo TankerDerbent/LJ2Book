@@ -273,7 +273,7 @@ namespace LJ2Book.Download
 
 			task.ProgressMax1 = NumberItemsToCollectInfo;
 
-			List<Stage2TaskInfo> diList = new List<Stage2TaskInfo>();
+			
 			List<Article> Articles = new List<Article>();
 #if false
 			int n = 0;
@@ -302,7 +302,7 @@ namespace LJ2Book.Download
 						if (Event.Params.ContainsKey("taglist"))
 							article.Tags = Event.Params["taglist"].Replace(", ", ",");
 
-						diList.Add(new Stage2TaskInfo { article = article, task = task });
+						//diList.Add(new Stage2TaskInfo { article = article, task = task });
 						n += 1;
 					}
 					Articles.Add(article);
@@ -319,10 +319,12 @@ namespace LJ2Book.Download
 
 			task.SaveArticlesToDB(Articles);
 #endif
-			Article[] articlesToDownload = task.GetArticlesToLoad().ToList().Take(BlogSynchronizationTask.MAX_ARTICLES_TO_DOWNLOAD).ToArray();
 
-			int NumberItemsToDownload = articlesToDownload.Length;
-			task.ProgressMax2 = NumberItemsToDownload;
+			List<Stage2TaskInfo> diList = new List<Stage2TaskInfo>();
+			foreach (var a in task.GetArticlesToLoad().ToList().Take(BlogSynchronizationTask.MAX_ARTICLES_TO_DOWNLOAD))
+				diList.Add(new Stage2TaskInfo { article = a, task = task });
+
+			task.ProgressMax2 = diList.Count;
 
 			task.semaphore = new Semaphore(0, BlogSynchronizationTask.DOWNLOAD_THREADS);
 			do

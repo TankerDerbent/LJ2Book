@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:LJ2Book.SimpleForms"
 			 xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d" 
-             d:DesignHeight="30" d:DesignWidth="80">
+             d:DesignHeight="30" d:DesignWidth="180">
 	<UserControl.Resources>
 		<sys:Double x:Key="ButtonSize">24</sys:Double>
 		<Style TargetType="Button" x:Key="DelButtonStyle">
@@ -20,8 +20,8 @@
 				<Setter.Value>
 					<ControlTemplate TargetType="Button">
 						<Canvas Opacity="0.5" Width="{StaticResource ButtonSize}" Height="{StaticResource ButtonSize}" Background="Transparent">
-							<Line X1="06" Y1="06" X2="18" Y2="18" Stroke="Black" StrokeThickness="1" />
-							<Line X1="06" Y1="18" X2="18" Y2="06" Stroke="Black" StrokeThickness="1" />
+							<Line X1="08" Y1="08" X2="16" Y2="16" Stroke="Black" StrokeThickness="1" />
+							<Line X1="08" Y1="16" X2="16" Y2="08" Stroke="Black" StrokeThickness="1" />
 						</Canvas>						
 					</ControlTemplate>
 				</Setter.Value>
@@ -32,8 +32,8 @@
 						<Setter.Value>
 							<ControlTemplate TargetType="Button">
 								<Canvas Opacity="1" Width="{StaticResource ButtonSize}" Height="{StaticResource ButtonSize}" Background="Transparent">
-									<Line X1="06" Y1="06" X2="18" Y2="18" Stroke="Black" StrokeThickness="1" />
-									<Line X1="06" Y1="18" X2="18" Y2="06" Stroke="Black" StrokeThickness="1" />
+									<Line X1="08" Y1="08" X2="16" Y2="16" Stroke="Black" StrokeThickness="1" />
+									<Line X1="08" Y1="16" X2="16" Y2="08" Stroke="Black" StrokeThickness="1" />
 								</Canvas>
 							</ControlTemplate>
 						</Setter.Value>
@@ -44,8 +44,8 @@
 						<Setter.Value>
 							<ControlTemplate TargetType="Button">
 								<Canvas Opacity="1" Width="{StaticResource ButtonSize}" Height="{StaticResource ButtonSize}" Background="Black">
-									<Line X1="06" Y1="06" X2="18" Y2="18" Stroke="White" StrokeThickness="1" />
-									<Line X1="06" Y1="18" X2="18" Y2="06" Stroke="White" StrokeThickness="1" />
+									<Line X1="08" Y1="08" X2="16" Y2="16" Stroke="White" StrokeThickness="1" />
+									<Line X1="08" Y1="16" X2="16" Y2="08" Stroke="White" StrokeThickness="1" />
 								</Canvas>
 							</ControlTemplate>
 						</Setter.Value>
@@ -55,7 +55,7 @@
 		</Style>
 		<Style TargetType="TextBox" x:Key="InputFieldStyle">
 			<Setter Property="Margin" Value="2" />
-			<Setter Property="Padding" Value="0,0,25,0" />
+			<Setter Property="Padding" Value="4,0,25,0" />
 			<Setter Property="Height" Value="21" />
 			<Setter Property="IsTabStop" Value="False" />
 			<Setter Property="IsReadOnly" Value="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}" />

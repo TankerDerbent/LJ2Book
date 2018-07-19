@@ -52,7 +52,19 @@ namespace LJ2Book.FormBrowseBlog
 		private void BuildTextAndPreparePictures(List<ArticleWrapper> _articles)
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.Append("<!DOCTYPE html>\r\n<html>\r\n<head>\r\n\t<meta charset=\"utf-8\">\r\n</head>\r\n<body bgcolor='#FFFFFF'>\r\n");
+			sb.Append(@"
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset=""utf-8"">
+<style>
+body {background-color: #FFFFFF;}
+h2   {font-family:calibri,verdana;text-align:center;}
+p    {font-family:calibri,verdana;text-align:justify;}
+</style>
+</head>
+<body>
+");
 			int LabelNo = 1;
 			_CachedImages = new List<CachedImage>();
 			Regex rxImageTag = new Regex("<img[^<]*>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
@@ -60,10 +72,18 @@ namespace LJ2Book.FormBrowseBlog
 			foreach (var a in _articles)
 			{
 				sb.Append(string.Format("", LabelNo));
-				sb.Append(string.Format("<a name='article_{0}'><H1>{0}. {1}</H1></a>\r\n", LabelNo, a.Title));
+				if (_articles.Count == 1)
+					sb.Append(string.Format("<H2>{0}</H2>\r\n", a.Title));
+				else
+					sb.Append(string.Format("<a name='article_{0}'><H2>{0}. {1}</H2></a>\r\n", LabelNo, a.Title));
+
 				LabelNo += 1;
 				sb.Append(a.RawBody);
 				sb.Append("\r\n");
+				if (a.TagArray.Length == 0)
+					sb.Append("<p style=\"text-align:right;\">Tags:&nbsp;<span style='color:Silver'>none</span></p>");
+				else
+					sb.Append("<p style=\"text-align:right;\">Tags:&nbsp;<strong>" + string.Join("</strong>,<strong>", a.TagArray) + "</strong></p>");
 
 				MatchCollection matches = rxImageTag.Matches(a.RawBody);
 				foreach (Match match in matches)
@@ -140,11 +160,6 @@ namespace LJ2Book.FormBrowseBlog
 			_prevSearchText = string.Empty;
 			RootVM = null;
 			_RawArticles = null;
-			_TagsList = new ObservableCollection<TagItem>();
-			_TagsList.Add(new TagItem { Name = "tag 1" });
-			_TagsList.Add(new TagItem { Name = "tag 2" });
-			_TagsList.Add(new TagItem { Name = "tag 3" });
-			_TagsList.Add(new TagItem { Name = "tag 4" });
 		}
 		public BrowseBlogViewModel(LJ2Book.MainWindowViewModel _RootVM, Window window = null) : base(window)
 		{
@@ -154,6 +169,7 @@ namespace LJ2Book.FormBrowseBlog
 			RootVM = _RootVM;
 			ReloadTagList();
 		}
+		public string[] AllTags { get; set; }
 		private void ReloadTagList()
 		{
 			Blog blog = RootVM.BrowseStorageVM.SelectedItem;
@@ -162,32 +178,16 @@ namespace LJ2Book.FormBrowseBlog
 
 			string[] rawTags = (from a in App.db.Articles where a.Blog.UserBlogID == blog.UserBlogID select a.Tags).Distinct().ToArray();
 
-			string[] resultTags = string.Join(",", rawTags).Split(',').Distinct().OrderBy(s => s, StringComparer.CurrentCultureIgnoreCase).ToArray();
-			var Tags = new ObservableCollection<TagItem>();
-			if (resultTags.Count() > 0)
-			{
-				while (resultTags[0].Length == 0)
-				{
-					resultTags = resultTags.Skip(1).ToArray();
-					if (resultTags.Count() == 0)
-						break;
-				}
-
-					foreach (var s in resultTags)
-					Tags.Add(new TagItem { Name = s });
-			}
-			TagsList = Tags;
+			AllTags = string.Join(",", rawTags).
+				Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).
+				Distinct().
+				OrderBy(s => s, StringComparer.CurrentCultureIgnoreCase).
+				ToArray();
+			OnPropertyChanged(() => AllTags);
 		}
 		private string prevTags = string.Empty;
-		internal void ApplyTags()
-		{
-			string currentSelection = string.Join(",", _SelectedTags.ToArray());
-			if (prevTags == currentSelection)
-				return;
-
-			prevTags = currentSelection;
-			FilterChanged();
-		}
+		private string[] _SelectedTags = new string[] { };
+		public string[] SelectedTags { get => _SelectedTags; set { _SelectedTags = value; FilterChanged(); } }
 		private List<Article> _RawArticles;
 		private bool _doNotShowHiddenArticles = true;
 		public List<ArticleWrapper> Articles { get; internal set; }
@@ -213,6 +213,9 @@ namespace LJ2Book.FormBrowseBlog
 		private string _prevSearchText;
 		private void FilterChanged()
 		{
+			if (_RawArticles == null)
+				return;
+
 			List<ArticleWrapper> Stub = _RawArticles.Select(a => new ArticleWrapper(a)).OrderByDescending(biw => biw.DT).ToList();
 			// Hide private Check
 			if (_doNotShowHiddenArticles)
@@ -231,7 +234,7 @@ namespace LJ2Book.FormBrowseBlog
 					_prevSearchText = string.Empty;
 			}
 			// search by tags
-			if (_SelectedTags.Count > 0)
+			if (_SelectedTags.Count() > 0)
 				Stub = Stub.Where(a => a.TagArray.Intersect(_SelectedTags.ToArray()).Any()).ToList();
 			// end filter parse
 			Articles = Stub;
@@ -246,37 +249,7 @@ namespace LJ2Book.FormBrowseBlog
 				return new BaseCommand(() => FilterChanged());
 			}
 		}
-		private List<string> _SelectedTags = new List<string>();
-		public string SelectedTags
-		{
-			get
-			{
-				if (_TagsList == null)
-					return string.Empty;
-
-				return _TagsList.Count == 0 ? "select tags..." : string.Join("; ", _SelectedTags.ToArray());
-			}
-		}
-		private ObservableCollection<TagItem> _TagsList;
 		private string _TextToShow;
-		public ObservableCollection<TagItem> TagsList { get => _TagsList; set { _TagsList = value; OnPropertyChanged(() => TagsList); } }
-		public ICommand TagsListChanged
-		{
-			get
-			{
-				return new BaseCommand(x =>
-				{
-					TagItem item = x as TagItem;
-					if (item.IsChecked)
-						_SelectedTags.Add(item.Name);
-					else
-					{
-						_SelectedTags.Remove(item.Name);
-					}
-					OnPropertyChanged(() => SelectedTags);
-				});
-			}
-		}
 		public ICommand NextArticle { get => new BaseCommand(() => ScrollToNextLabel()); }
 		public ICommand PrevArticle { get => new BaseCommand(() => ScrollToPrevArticle()); }
 		private async void ScrollToPrevArticle()
@@ -299,12 +272,6 @@ namespace LJ2Book.FormBrowseBlog
 		public override void Dispose()
 		{
 		}
-	}
-	class TagItem : Notify
-	{
-		public string Name { get; set; }
-		private bool _IsChecked = false;
-		public bool IsChecked { get { return _IsChecked; } set { _IsChecked = value; OnPropertyChanged(() => IsChecked); } }
 	}
 	class CachedImage
 	{

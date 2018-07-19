@@ -52,6 +52,6 @@ namespace LJ2Book.FormBrowseBlog
 
 			return false;
 		}
-		public string[] TagArray { get => article.Tags.Split(','); }
+		public string[] TagArray { get => article.Tags.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries); }
 	}
 }

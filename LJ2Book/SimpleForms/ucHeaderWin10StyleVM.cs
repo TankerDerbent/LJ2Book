@@ -56,9 +56,6 @@ namespace LJ2Book.SimpleForms
 		public delegate void OnBackButtonPressed();
 		public event OnBackButtonPressed BackButtonPressed;
 
-		public override void Dispose()
-		{
-			//throw new System.NotImplementedException();
-		}
+		public override void Dispose() { }
 	}
 }

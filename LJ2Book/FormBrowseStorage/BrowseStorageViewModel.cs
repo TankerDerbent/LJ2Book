@@ -38,11 +38,7 @@ namespace LJ2Book.FormBrowseStorage
 						SelectedItem = (x as BlogWrapper).blog;
 						RootVM.Mode = MainWindowViewModel.MainWindowMode.ReadBlog;
 					}
-				}/*,
-				delegate ()
-				{
-					return RootVM.Online;
-				}*/);
+				});
 			}
 		}
 		public ICommand RemoveItem

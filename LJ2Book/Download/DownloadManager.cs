@@ -256,73 +256,86 @@ namespace LJ2Book.Download
 		}
 		private void CollectStage1Info(BlogSynchronizationTask task)
 		{
+			List<Article> Articles = new List<Article>();
 			int[] ItemNumbersToSync = task.GetItemNumbersToSync();
 
-			int NumberItemsToCollectInfo = ItemNumbersToSync.Length;
-			if (NumberItemsToCollectInfo == 0)
+			do // stage 1 - gathering events
 			{
-				Debug.WriteLine("Articles to load: nothing");
-				task.EndSynchronization();
-				return;
-			}
-			string logString = string.Format("Articles to load: " + string.Join(",", (from i in ItemNumbersToSync select i.ToString()).ToArray()));
-			if (logString.Length > 150)
-				Debug.WriteLine(logString.Substring(0, 130) + "...<skipped>..." + logString.Substring(logString.Length - 15, 15));
-			else
-				Debug.WriteLine(logString);
+				
 
-			task.ProgressMax1 = NumberItemsToCollectInfo;
-
-			
-			List<Article> Articles = new List<Article>();
-#if false
-			int n = 0;
-			foreach (var i in ItemNumbersToSync)
-			{
-				Thread.Sleep(205);
-				Article article = new Article { ArticleNo = i, Anum = 0, Url = string.Empty, RawTitle = string.Empty, RawBody = string.Empty, Tags = string.Empty, Blog = task.blog };
-				try
+				int NumberItemsToCollectInfo = ItemNumbersToSync.Length;
+				if (NumberItemsToCollectInfo == 0)
 				{
-					LiveJournalEvent Event = cnn.GetEventByNo(task.blog.User.UserName, i);
-					if (Event == null)
-					{
-						Debug.WriteLine(string.Format("Get Event by No: event for {0} is deleted", i));
-						article.Anum = 0;
-						article.State = ArticleState.Removed;
-						article.ArticleDT = DateTime.Now;
-					}
-					else
-					{
-						Debug.WriteLine(string.Format("Get Event by No: event for {0} has URL {1}", i, Event.url));
-
-						article.Anum = Event.anum;
-						article.State = ArticleState.Queued;
-						article.Url = Event.url;
-						article.ArticleDT = Event.eventtime;
-						if (Event.Params.ContainsKey("taglist"))
-							article.Tags = Event.Params["taglist"].Replace(", ", ",");
-
-						//diList.Add(new Stage2TaskInfo { article = article, task = task });
-						n += 1;
-					}
-					Articles.Add(article);
-					if (n > BlogSynchronizationTask.MAX_EVENTS_TO_COLLECT)
-						break;
-				}
-				catch (FailedToGetEventByNoException e)
-				{
-					Debug.WriteLine(string.Format("Get Event by No: Fail to get event for {0}. Error: {1}", i, e.Message));
+					Debug.WriteLine("Events to load: nothing, continue with queued articles");
+					//task.EndSynchronization();
 					break;
 				}
-				task.Step1();
-			}
+				string logString = string.Format("Articles to load: " + string.Join(",", (from i in ItemNumbersToSync select i.ToString()).ToArray()));
+				if (logString.Length > 150)
+					Debug.WriteLine(logString.Substring(0, 130) + "...<skipped>..." + logString.Substring(logString.Length - 15, 15));
+				else
+					Debug.WriteLine(logString);
 
-			task.SaveArticlesToDB(Articles);
+				task.ProgressMax1 = NumberItemsToCollectInfo;
+
+#if true
+				int nEventCollectLimit = 0;
+				foreach (var i in ItemNumbersToSync)
+				{
+					Thread.Sleep(205);
+					Article article = new Article { ArticleNo = i, Anum = 0, Url = string.Empty, RawTitle = string.Empty, RawBody = string.Empty, Tags = string.Empty, Blog = task.blog };
+					try
+					{
+						LiveJournalEvent Event = cnn.GetEventByNo(task.blog.User.UserName, i);
+						if (Event == null)
+						{
+							Debug.WriteLine(string.Format("Get Event by No: event for {0} is deleted", i));
+							article.Anum = 0;
+							article.State = ArticleState.Removed;
+							article.ArticleDT = DateTime.Now;
+						}
+						else
+						{
+							Debug.WriteLine(string.Format("Get Event by No: event for {0} has URL {1}", i, Event.url));
+
+							article.Anum = Event.anum;
+							article.State = ArticleState.Queued;
+							article.Url = Event.url;
+							article.ArticleDT = Event.eventtime;
+							if (Event.Params.ContainsKey("taglist"))
+								article.Tags = Event.Params["taglist"].Replace(", ", ",");
+
+							//diList.Add(new Stage2TaskInfo { article = article, task = task });
+							nEventCollectLimit += 1;
+						}
+						Articles.Add(article);
+						if (nEventCollectLimit > BlogSynchronizationTask.MAX_EVENTS_TO_COLLECT)
+							break;
+					}
+					catch (FailedToGetEventByNoException e)
+					{
+						Debug.WriteLine(string.Format("Get Event by No: Fail to get event for {0}. Error: {1}", i, e.Message));
+						break;
+					}
+					task.Step1();
+				}
+
+				task.SaveArticlesToDB(Articles);
 #endif
+
+			}
+			while (false);
 
 			List<Stage2TaskInfo> diList = new List<Stage2TaskInfo>();
 			foreach (var a in task.GetArticlesToLoad().ToList().Take(BlogSynchronizationTask.MAX_ARTICLES_TO_DOWNLOAD))
 				diList.Add(new Stage2TaskInfo { article = a, task = task });
+
+			if (diList.Count == 0)
+			{
+				Debug.WriteLine(string.Format("No articles waiting to load."));
+				task.EndSynchronization();
+				return;
+			}
 
 			task.ProgressMax2 = diList.Count;
 
@@ -508,6 +521,7 @@ namespace LJ2Book.Download
 			browser.FrameLoadEnd -= Browser_FrameLoadEnd;
 
 			Debug.WriteLine(string.Format("Thread {0}: SavePageToDB: succeed = {1}, url = '{2}'", Thread.CurrentThread.ManagedThreadId, Success.ToString(), ti.article.Url));
+			ti.article.State = Success ? ArticleState.Ready : ArticleState.FailedToProcess;
 			ti.task.SaveArticleDetails(ti.article, Pictures);
 			ti.task.Step2();
 		}

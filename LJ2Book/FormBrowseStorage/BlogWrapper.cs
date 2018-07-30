@@ -2,6 +2,7 @@
 using SimplesNet;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Windows;
 
@@ -38,6 +39,12 @@ namespace LJ2Book.FormBrowseStorage
 					result.Append(", ");
 					result.Append(blog.LastItemNo);
 					result.Append(" articles");
+					App.db.Entry(blog).Collection(b => b.Articles).Load();
+					int articlesCount = (from a in blog.Articles where a.State == ArticleState.Queued select a).Count();
+					if (articlesCount == 0)
+						result.Append('.');
+					else
+						result.Append(string.Format(", {0} to load.", articlesCount));
 				}
 
 				return result.ToString();
@@ -103,6 +110,7 @@ namespace LJ2Book.FormBrowseStorage
 		private void OnSynchronizationEnded()
 		{
 			Stage = 0;
+			OnPropertyChanged(() => LastUpdateAndArticlesCountAsText);
 		}
 		private void OnOverallProgressChangedStage1(int MaxItems)
 		{
